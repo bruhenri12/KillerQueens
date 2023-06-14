@@ -12,19 +12,19 @@ public class QueensManipulator : MonoBehaviour
         int[] geneticTape = genetic.GetGeneticTape();
         for (int i = 0; i<8; i++)
         {
-            UpdateQueenPosition(i, geneticTape[i]);
+            NewQueenPosition(i, geneticTape[i]);
         }
     }
 
     
-    void UpdateQueenPosition(int column, int line){
+    void NewQueenPosition(int column, int line){
         Transform lineTransform = boardColumns[column].transform.GetChild(line);
         queens[column].transform.position = lineTransform.position;
     }
 
     public void OnUpdateQueens()
     {
-        genetic.UpdateGeneticTape();
+        genetic.RandomizeGeneticTape();
         UpdateQueensPositions();
     }
 
