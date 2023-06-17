@@ -110,4 +110,53 @@ public class GeneticManager : MonoBehaviour
 
         return newGeneTape;
     }
+
+    public string[] MutateChild(string[] childGenes, float mutationProb)
+    {
+        for (int i = 0; i < childGenes.Length; i++)
+        {
+            //Checks if should mutate genes
+            int mutationRandomNumber = new System.Random().Next(0, 101);
+
+            if (mutationRandomNumber > mutationProb * 100)
+            {
+                //Array of positions that are not the index
+                int[] validPositions = Enumerable.Range(0, 8).Where(pos => pos != i).ToArray();
+                int swapRandomNumber = new System.Random().Next(0, 7);
+                int swapPos = validPositions[swapRandomNumber];
+
+                // Swap the positions of the mutant  genes
+                string swapAux;
+                swapAux = childGenes[i];
+                childGenes[i] = childGenes[swapPos];
+                childGenes[swapPos] = swapAux;
+            }
+        }
+        return childGenes;
+    }
+
+    [ContextMenu("DebugMutateChild")]
+    public void DebugMutateChild()
+    {
+        //Method used only for test purpose of the MutateChild method. It can be safetly deleted later
+        int[] numbers = Enumerable.Range(0, 8).ToArray();
+        int[] permutation = numbers.OrderBy(x => Guid.NewGuid()).ToArray();
+        string[] child = permutation.Select(num => Convert.ToString(num, 2).PadLeft(3, '0')).ToArray();
+
+        string originalGeneTxt = "| ";
+        foreach(string gene in child)
+        {
+            originalGeneTxt += gene + " | ";
+        }
+
+        string[] mutantChild = MutateChild(child, 0.5f);
+
+        string mutantGeneTxt = "| ";
+        foreach (string gene in mutantChild)
+        {
+            mutantGeneTxt += gene + " | ";
+        }
+
+        Debug.Log($"Original: {originalGeneTxt} \n Mutant: {mutantGeneTxt}");
+    }
 }
