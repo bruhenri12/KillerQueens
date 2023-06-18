@@ -5595,7 +5595,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1629897305}
-  - component: {fileID: 1629897304}
   - component: {fileID: 1629897303}
   - component: {fileID: 1629897306}
   m_Layer: 0
@@ -5617,7 +5616,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b51df43c802a8334d9e478e5dccffa85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  genetic: {fileID: 1629897304}
   queens:
   - {fileID: 2008412478}
   - {fileID: 1741329893}
@@ -5636,18 +5634,6 @@ MonoBehaviour:
   - {fileID: 1638868228}
   - {fileID: 641737931}
   - {fileID: 1648048422}
---- !u!114 &1629897304
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1629897302}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d9c0626ffa7b5a40bc960f31e215587, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &1629897305
 Transform:
   m_ObjectHideFlags: 0
@@ -5675,7 +5661,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac84108375bbaaf46a6c66e153ebafd9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  genetic: {fileID: 1629897304}
   manipulator: {fileID: 1629897303}
 --- !u!1 &1638868228
 GameObject:
@@ -6342,7 +6327,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 662, y: 352}
+  m_AnchoredPosition: {x: 259, y: -92}
   m_SizeDelta: {x: 300, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1827026602

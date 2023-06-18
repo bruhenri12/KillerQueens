@@ -4,37 +4,37 @@ using UnityEngine;
 
 public class QueensManipulator : MonoBehaviour
 {
-    [SerializeField] private GeneticManager genetic;
-    [SerializeField] private GameObject[] queens = new GameObject[8];
-    [SerializeField] private GameObject[] boardColumns = new GameObject[8];
-    
-    public void UpdateQueensPositions() {
-        int[] geneticTape = genetic.GetGeneticTape();
-        for (int i = 0; i<8; i++)
-        {
-            NewQueenPosition(i, geneticTape[i]);
-        }
-    }
+  [SerializeField] private GameObject[] queens = new GameObject[8];
+  [SerializeField] private GameObject[] boardColumns = new GameObject[8];
 
-    
-    void NewQueenPosition(int column, int line){
-        Transform lineTransform = boardColumns[column].transform.GetChild(line);
-        queens[column].transform.position = lineTransform.position;
-    }
-
-    public void OnUpdateQueens()
+  public void UpdateQueensPositions(GeneticManager gene)
+  {
+    int[] geneticTape = gene.GetGeneticTape();
+    for (int i = 0; i < 8; i++)
     {
-        genetic.RandomizeGeneticTape();
-        UpdateQueensPositions();
+      NewQueenPosition(i, geneticTape[i]);
     }
+  }
 
-    public GameObject[] GetQueens()
-    {
-        return queens;
-    }
 
-    public GameObject[] GetBoard()
-    {
-        return boardColumns;
-    }
+  void NewQueenPosition(int column, int line)
+  {
+    Transform lineTransform = boardColumns[column].transform.GetChild(line);
+    queens[column].transform.position = lineTransform.position;
+  }
+
+  public void OnUpdateQueens(GeneticManager gene)
+  {
+    UpdateQueensPositions(gene);
+  }
+
+  public GameObject[] GetQueens()
+  {
+    return queens;
+  }
+
+  public GameObject[] GetBoard()
+  {
+    return boardColumns;
+  }
 }
