@@ -111,25 +111,35 @@ public class GeneticManager : MonoBehaviour
         return newGeneTape;
     }
 
-    public string[] MutateChild(string[] childGenes, float mutationProb)
+    public int[] MutateChild(int[] childGenes, float mutationProb)
     {
-        for (int i = 0; i < childGenes.Length; i++)
+        // Amount of genes on the array of binaries converted do integers 
+        int genesCount = childGenes.Length / 3;
+
+        for (int i = 0; i < genesCount; i++)
         {
             //Checks if should mutate genes
             int mutationRandomNumber = new System.Random().Next(0, 101);
 
-            if (mutationRandomNumber > mutationProb * 100)
+            if (mutationRandomNumber <= mutationProb * 100)
             {
+                //Position of the gene in the binary vector
+                int genePos = i * 3;
+
                 //Array of positions that are not the index
                 int[] validPositions = Enumerable.Range(0, 8).Where(pos => pos != i).ToArray();
                 int swapRandomNumber = new System.Random().Next(0, 7);
-                int swapPos = validPositions[swapRandomNumber];
+                int swapPos = validPositions[swapRandomNumber]*3;
+                Debug.Log($"SWAP ({mutationRandomNumber}) {i}({genePos}) <-> {swapPos / 3}({swapPos})");
 
                 // Swap the positions of the mutant  genes
-                string swapAux;
-                swapAux = childGenes[i];
-                childGenes[i] = childGenes[swapPos];
-                childGenes[swapPos] = swapAux;
+                int swapAux;
+                for (int j = 0; j < 3; j++)
+                {
+                    swapAux = childGenes[genePos + j];
+                    childGenes[genePos + j] = childGenes[swapPos+j];
+                    childGenes[swapPos + j] = swapAux;
+                }
             }
         }
         return childGenes;
@@ -139,22 +149,22 @@ public class GeneticManager : MonoBehaviour
     public void DebugMutateChild()
     {
         //Method used only for test purpose of the MutateChild method. It can be safetly deleted later
-        int[] numbers = Enumerable.Range(0, 8).ToArray();
-        int[] permutation = numbers.OrderBy(x => Guid.NewGuid()).ToArray();
-        string[] child = permutation.Select(num => Convert.ToString(num, 2).PadLeft(3, '0')).ToArray();
-
         string originalGeneTxt = "| ";
-        foreach(string gene in child)
+        for (int i= 0; i<genTape.Length; i++)
         {
-            originalGeneTxt += gene + " | ";
+            int gene = genTape[i];
+            originalGeneTxt += gene;
+            originalGeneTxt += (i % 3 == 2) ? " | " : "";
         }
 
-        string[] mutantChild = MutateChild(child, 0.5f);
+        int[] mutantChild = MutateChild(genTape, 0.4f);
 
         string mutantGeneTxt = "| ";
-        foreach (string gene in mutantChild)
+        for (int i=0; i<genTape.Length; i++)
         {
-            mutantGeneTxt += gene + " | ";
+            int gene = mutantChild[i];
+            mutantGeneTxt += gene;
+            mutantGeneTxt += (i % 3 == 2) ? " | " : "";
         }
 
         Debug.Log($"Original: {originalGeneTxt} \n Mutant: {mutantGeneTxt}");
