@@ -8,15 +8,26 @@ public class GameManager : MonoBehaviour
   private static int sizeOfPopulation = 100;
   public GeneticManager[] genes = new GeneticManager[sizeOfPopulation];
   // Taking only one element -> fix this to calculate the fitness for every gene
-  private GeneticManager selectedGene;
+  public static GameManager Instance {get; private set;}
+
+  private GeneticManager bestSetting;
 
   // void RunIteration() {
   //     int[] newPositions = genetic.runGeneticAlgorithm();
   //     manipulator.UpdateQueensPositions();        
   // }
 
+  void Awake(){
+    //Singleton pattern
+    if(!Instance){
+      Instance = this;
+    } else {
+      Destroy(gameObject);
+    }
+  }
+
   [ContextMenu("CheckCollisions")]
-  int CheckCollisions(int[] geneticTape)
+  public int CheckCollisions(int[] geneticTape)
   {
     int numCollisions = 0;
     // int[] geneticTape = genetic.GetGeneticTape();
@@ -50,31 +61,83 @@ public class GameManager : MonoBehaviour
     return numCollisions;
   }
 
+  //Return the best setting among the various settings
+  GeneticManager GetBestSetting(GeneticManager[] settings)
+  {
+    GeneticManager best = null;
+
+    for (int i = 0; i < settings.Length; i++) 
+    {
+      if(best == null || best.Fitness > settings[i].Fitness) 
+      {
+        best = settings[i];
+      }
+    }
+
+    return best;
+  }
+
   public void OnCheck()
   {
-    if (!selectedGene.Equals(null))
+    if (!bestSetting.Equals(null))
     {
-      Debug.Log("Number of Collisions: " + CheckCollisions(selectedGene.GetGeneticTape()) / 2);
+      Debug.Log("Number of Collisions: " + CheckCollisions(bestSetting.GetGeneticTape()) / 2);
     }
   }
 
   public void OnRun()
   {
-    int numColisions = -1;
     int iter = 0;
+    bestSetting = null;
+    int bestFitness = int.MaxValue;
+
+    //Initialize the population with random individuals
     for (int i = 0; i < sizeOfPopulation; i++)
     {
       genes[i] = new GeneticManager();
     }
+
     // Taking only one element -> fix this to calculate the fitness for every gene
-    selectedGene = genes[5];
-    while (numColisions != 0 && iter < 10)
+    while (bestFitness != 0 && iter < 100)
     {
-      iter++;
-      manipulator.OnUpdateQueens(selectedGene);
-      numColisions = CheckCollisions(selectedGene.GetGeneticTape());
+      //Placeholder to simulate breeding
+      for (int i = 0; i < sizeOfPopulation; i++)
+      {
+        genes[i] = new GeneticManager();
+      }
+
+      //Update best setting
+      bestSetting = GetBestSetting(genes);
+      bestFitness = bestSetting.Fitness;
+
+      //Update board renderer
+      manipulator.OnUpdateQueens(bestSetting);
+
+      PrintPopulationFitness();
+      iter++; 
     }
-    Debug.Log("Acabou o loop!" + "\nCollisions: " + numColisions.ToString());
+
+    Debug.Log("Acabou o loop!" + "\nCollisions: " + bestSetting.Fitness.ToString());
+    Debug.Log("(" + iter + ") best: " + bestSetting.Fitness);
     Debug.Log("Iterations: " + iter.ToString());
+  }
+
+  void PrintPopulationFitness(){
+      //Debug method used to print the fitness of each individual from the population 
+      string tmpTxt = "Fitness: ";
+      for (int i = 0; i < sizeOfPopulation; i++)
+      {
+        tmpTxt += genes[i].Fitness + " | ";
+      }
+      tmpTxt += "\nBest Fitness:  " + bestSetting.Fitness;
+      tmpTxt += "\nBest genes: [";
+
+      foreach (var gene in bestSetting.GetGeneticTape())
+      {
+        tmpTxt += gene + ",";
+      }
+      tmpTxt += "]";
+
+      Debug.Log(tmpTxt);
   }
 }

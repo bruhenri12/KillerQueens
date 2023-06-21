@@ -7,11 +7,15 @@ using System;
 public class GeneticManager
 {
   private int[] genTape = new int[24];
+  public int Fitness {get; private set;}
 
   public GeneticManager()
   {
     // Initialize a GeneticManager object already starting with random genes
     this.RandomizeGeneticTape();
+
+    // Set the fitness using the number of collisions
+    Fitness = GameManager.Instance.CheckCollisions(GetGeneticTape());
   }
 
   public void RandomizeGeneticTape()
