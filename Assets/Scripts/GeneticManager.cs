@@ -4,34 +4,19 @@ using UnityEngine;
 using System.Linq;
 using System;
 
-public class GeneticManager
+public static class GeneticManager
 {
-  private int[] genTape = new int[24];
-  public int Fitness {get; private set;}
-
-  public GeneticManager()
-  {
-    // Initialize a GeneticManager object already starting with random genes
-    this.RandomizeGeneticTape();
-
-    // Set the fitness using the number of collisions
-    Fitness = GameManager.Instance.CheckCollisions(GetGeneticTape());
-  }
-
-  public void RandomizeGeneticTape()
+  public static int[] GenerateRandomGeneticTape()
   {
     System.Random rnd = new System.Random();
     int[] tape = Enumerable.Range(0, 8).OrderBy(c => rnd.Next()).ToArray();
-    GenerateGenTape(tape);
+    return ConvertToBinaryTape(tape);
   }
 
-  public int[] GetGeneticTape()
+  public static int[] ConvertToBinaryTape(int[] tape)
   {
-    return TapeConverter();
-  }
+    int[] genTape = new int[24];
 
-  public void GenerateGenTape(int[] tape)
-  {
     int temp = 0;
     for (int i = 0; i < 8; i++)
     {
@@ -41,12 +26,17 @@ public class GeneticManager
                        .Select(c => int.Parse(c.ToString()))
                        .ToArray();
 
-      for (int j = 0; j < 3; j++) { genTape[temp + j] = bitQueen[j]; }
+      for (int j = 0; j < 3; j++) 
+      { 
+        genTape[temp + j] = bitQueen[j]; 
+      }
       temp += 3;
     }
+
+    return genTape;
   }
 
-  public int[] TapeConverter()
+  public static int[] ConvertToIntTape(int[] genTape)
   {
     int[] decTape = new int[8];
 
@@ -54,14 +44,17 @@ public class GeneticManager
     for (int i = 0; i < 8; i++)
     {
       string conv = "";
-      for (int j = 0; j < 3; j++) { conv += genTape[temp + j]; }
+      for (int j = 0; j < 3; j++) 
+      {
+         conv += genTape[temp + j];
+      }
       decTape[i] = Convert.ToInt16(conv, 2);
       temp += 3;
     }
     return decTape;
   }
 
-  public int[][] Crossover(
+  public static int[][] Crossover(
       int[] parent1, int[] parent2,
       int offspringSize, int geneSlices,
       bool cloneParents = false
@@ -88,7 +81,7 @@ public class GeneticManager
     return offspring;
   }
 
-  public int[] GenerateChild(int[] parent1, int[] parent2, int geneSlices)
+  public static int[] GenerateChild(int[] parent1, int[] parent2, int geneSlices)
   {
     int[] sliceIndexes = new int[geneSlices];
 
@@ -123,7 +116,7 @@ public class GeneticManager
     return newGeneTape;
   }
 
-  public int[] MutateChild(int[] childGenes, float mutationProb)
+  public static int[] MutateChild(int[] childGenes, float mutationProb)
   {
     // Amount of genes on the array of binaries converted do integers 
     int genesCount = childGenes.Length / 3;
@@ -157,8 +150,7 @@ public class GeneticManager
     return childGenes;
   }
 
-  //   [ContextMenu("DebugMutateChild")]
-  public void DebugMutateChild()
+  public static void DebugMutateChild(int[] genTape)
   {
     //Method used only for test purpose of the MutateChild method. It can be safetly deleted later
     string originalGeneTxt = "| ";
@@ -181,4 +173,5 @@ public class GeneticManager
 
     Debug.Log($"Original: {originalGeneTxt} \n Mutant: {mutantGeneTxt}");
   }
+
 }

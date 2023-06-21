@@ -5,72 +5,22 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
   [SerializeField] QueensManipulator manipulator;
-  private static int sizeOfPopulation = 100;
-  public GeneticManager[] genes = new GeneticManager[sizeOfPopulation];
-  // Taking only one element -> fix this to calculate the fitness for every gene
-  public static GameManager Instance {get; private set;}
+  [Header("Parameters")]
+  [SerializeField] private int sizeOfPopulation = 100;
+  [SerializeField] private int maxIterations = 10;
+  public BoardSetting[] boardSettings;
+  private BoardSetting bestSetting;
 
-  private GeneticManager bestSetting;
-
-  // void RunIteration() {
-  //     int[] newPositions = genetic.runGeneticAlgorithm();
-  //     manipulator.UpdateQueensPositions();        
-  // }
-
-  void Awake(){
-    //Singleton pattern
-    if(!Instance){
-      Instance = this;
-    } else {
-      Destroy(gameObject);
-    }
-  }
-
-  [ContextMenu("CheckCollisions")]
-  public int CheckCollisions(int[] geneticTape)
+  //Return the best setting among the various boardSettings
+  BoardSetting GetBestSetting(BoardSetting[] boardSettings)
   {
-    int numCollisions = 0;
-    // int[] geneticTape = genetic.GetGeneticTape();
+    BoardSetting best = null;
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < boardSettings.Length; i++) 
     {
-      int lineValue = geneticTape[i];
-      for (int j = 0; j < 8; j++)
+      if(best == null || best.Fitness > boardSettings[i].Fitness) 
       {
-        if (j == i)
-        {
-          continue;
-        }
-
-        int distanceFromCurrentIdx = Mathf.Abs(i - j);
-
-        int downDiagValToColide = lineValue + distanceFromCurrentIdx;
-        int upDiagValToColide = lineValue - distanceFromCurrentIdx;
-
-        int comparisonColumnValue = geneticTape[j];
-        bool willColideUp = comparisonColumnValue == upDiagValToColide;
-        bool willColideDown = comparisonColumnValue == downDiagValToColide;
-        bool willColide = willColideUp || willColideDown;
-        if (willColide)
-        {
-          numCollisions++;
-        }
-      }
-    }
-
-    return numCollisions;
-  }
-
-  //Return the best setting among the various settings
-  GeneticManager GetBestSetting(GeneticManager[] settings)
-  {
-    GeneticManager best = null;
-
-    for (int i = 0; i < settings.Length; i++) 
-    {
-      if(best == null || best.Fitness > settings[i].Fitness) 
-      {
-        best = settings[i];
+        best = boardSettings[i];
       }
     }
 
@@ -81,7 +31,7 @@ public class GameManager : MonoBehaviour
   {
     if (!bestSetting.Equals(null))
     {
-      Debug.Log("Number of Collisions: " + CheckCollisions(bestSetting.GetGeneticTape()) / 2);
+      Debug.Log("Number of Collisions: " + bestSetting.CheckCollisions() / 2);
     }
   }
 
@@ -90,24 +40,24 @@ public class GameManager : MonoBehaviour
     int iter = 0;
     bestSetting = null;
     int bestFitness = int.MaxValue;
+    boardSettings = new BoardSetting[sizeOfPopulation];
 
     //Initialize the population with random individuals
     for (int i = 0; i < sizeOfPopulation; i++)
     {
-      genes[i] = new GeneticManager();
+      boardSettings[i] = new BoardSetting();
     }
 
-    // Taking only one element -> fix this to calculate the fitness for every gene
-    while (bestFitness != 0 && iter < 100)
+    while (bestFitness != 0 && iter < maxIterations)
     {
       //Placeholder to simulate breeding
       for (int i = 0; i < sizeOfPopulation; i++)
       {
-        genes[i] = new GeneticManager();
+        boardSettings[i] = new BoardSetting();
       }
 
       //Update best setting
-      bestSetting = GetBestSetting(genes);
+      bestSetting = GetBestSetting(boardSettings);
       bestFitness = bestSetting.Fitness;
 
       //Update board renderer
@@ -127,10 +77,10 @@ public class GameManager : MonoBehaviour
       string tmpTxt = "Fitness: ";
       for (int i = 0; i < sizeOfPopulation; i++)
       {
-        tmpTxt += genes[i].Fitness + " | ";
+        tmpTxt += boardSettings[i].Fitness + " | ";
       }
       tmpTxt += "\nBest Fitness:  " + bestSetting.Fitness;
-      tmpTxt += "\nBest genes: [";
+      tmpTxt += "\nBest boardSettings: [";
 
       foreach (var gene in bestSetting.GetGeneticTape())
       {

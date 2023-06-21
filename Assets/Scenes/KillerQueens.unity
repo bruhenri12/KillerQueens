@@ -5662,6 +5662,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   manipulator: {fileID: 1629897303}
+  sizeOfPopulation: 100
+  maxIterations: 10
 --- !u!1 &1638868228
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,7 +7,7 @@ public class QueensManipulator : MonoBehaviour
   [SerializeField] private GameObject[] queens = new GameObject[8];
   [SerializeField] private GameObject[] boardColumns = new GameObject[8];
 
-  public void UpdateQueensPositions(GeneticManager gene)
+  public void UpdateQueensPositions(BoardSetting gene)
   {
     int[] geneticTape = gene.GetGeneticTape();
     for (int i = 0; i < 8; i++)
@@ -23,7 +23,7 @@ public class QueensManipulator : MonoBehaviour
     queens[column].transform.position = lineTransform.position;
   }
 
-  public void OnUpdateQueens(GeneticManager gene)
+  public void OnUpdateQueens(BoardSetting gene)
   {
     UpdateQueensPositions(gene);
   }
