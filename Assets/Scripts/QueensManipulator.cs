@@ -9,7 +9,7 @@ public class QueensManipulator : MonoBehaviour
 
   public void UpdateQueensPositions(BoardSetting gene)
   {
-    int[] geneticTape = gene.GetGeneticTape();
+    int[] geneticTape = gene.GetGeneticIntTape();
     for (int i = 0; i < 8; i++)
     {
       NewQueenPosition(i, geneticTape[i]);

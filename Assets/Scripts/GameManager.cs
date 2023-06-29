@@ -50,10 +50,13 @@ public class GameManager : MonoBehaviour
 
     while (bestFitness != 0 && iter < maxIterations)
     {
-      //Placeholder to simulate breeding
       for (int i = 0; i < sizeOfPopulation; i++)
       {
-        boardSettings[i] = new BoardSetting();
+        GeneticManager.GenerateOffspring(boardSettings[0], boardSettings[1], 2);
+        return;
+
+      //Placeholder to simulate breeding
+        //boardSettings[i] = new BoardSetting();
       }
 
       //Update best setting
@@ -82,7 +85,7 @@ public class GameManager : MonoBehaviour
       tmpTxt += "\nBest Fitness:  " + bestSetting.Fitness;
       tmpTxt += "\nBest boardSettings: [";
 
-      foreach (var gene in bestSetting.GetGeneticTape())
+      foreach (var gene in bestSetting.GetGeneticIntTape())
       {
         tmpTxt += gene + ",";
       }

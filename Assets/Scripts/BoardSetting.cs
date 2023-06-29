@@ -9,22 +9,37 @@ public class BoardSetting
 
     public BoardSetting()
     {
-        // Initialize a GeneticManager object already starting with random genes
+        // Initialize a BoardSetting object already starting with random genes
         genTape = GeneticManager.GenerateRandomGeneticTape();
 
         // Set the fitness using the number of collisions
         Fitness = CheckCollisions();
     }
 
+    public BoardSetting(int[] tape)
+    {
+        // Initialize a BoardSetting object with a given tape
+        genTape = tape;
+
+        // Set the fitness using the number of collisions
+        Fitness = CheckCollisions();
+    }
+
     //Return the tape with int genes
-    public int[] GetGeneticTape()
+    public int[] GetGeneticIntTape()
     {
         return GeneticManager.ConvertToIntTape(genTape);
     }
 
+    //Return the tape with binary genes
+    public int[] GetGeneticBinaryTape()
+    {
+        return genTape;
+    }
+
     public int CheckCollisions()
     {
-        int[] geneticTape = GetGeneticTape();
+        int[] geneticTape = GetGeneticIntTape();
         int numCollisions = 0;
 
         for (int i = 0; i < 8; i++)
@@ -54,5 +69,23 @@ public class BoardSetting
         }
 
         return numCollisions;
+    }
+
+    public override string ToString()
+    {
+        int[] intTape = GetGeneticIntTape();
+        string tmp = "[";
+        for(int i = 0; i < intTape.Length; i++)
+        {
+            var gene = intTape[i];
+            tmp += gene.ToString();
+
+            if (i != intTape.Length - 1)
+            {
+                tmp += ",";
+            }
+        }
+        tmp += "]";
+        return tmp;
     }
 }
