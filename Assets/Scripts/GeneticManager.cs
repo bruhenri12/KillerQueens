@@ -38,17 +38,18 @@ public static class GeneticManager
 
   public static int[] ConvertToIntTape(int[] genTape)
   {
-    int[] decTape = new int[8];
+    int intTapeLength = genTape.Length/3;
+    int[] decTape = new int[intTapeLength];
 
     int temp = 0;
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < intTapeLength; i++)
     {
       string conv = "";
       for (int j = 0; j < 3; j++) 
       {
          conv += genTape[temp + j];
       }
-      decTape[i] = Convert.ToInt16(conv, 2);
+      decTape[i] = Convert.ToInt16(conv, 2); 
       temp += 3;
     }
     return decTape;
@@ -75,10 +76,10 @@ public static class GeneticManager
       for (int i = 0; i < offspringSize; i+=2)
       {
         var curOffspring = Crossover(parent1, parent2, geneSlices);
-        offspring[i] = curOffspring.firstChild;
+        offspring[i] = new BoardSetting(curOffspring.firstChild);
 
         if(i+1 < offspringSize) { 
-          offspring[i+i] = curOffspring.secondChild;
+          offspring[i+i] = new BoardSetting(curOffspring.secondChild);
         }
       }
     }
@@ -86,14 +87,24 @@ public static class GeneticManager
     return offspring;
   }
 
-  public static (BoardSetting firstChild, BoardSetting secondChild) Crossover(BoardSetting parent1, BoardSetting parent2, int geneSlices=1)
+  public static (int[] firstChild, int[] secondChild) Crossover(BoardSetting parent1, BoardSetting parent2, int geneSlices=1)
     {
         int[] sliceIndexes = new int[geneSlices];
 
         // Set indexes for slicing the gene tape
         for (int i = 0; i < geneSlices; i++)
         {
-            int sliceIndex = new System.Random().Next(0, 8) * 3; //Get the start of the encoded position
+            //Get the start of the encoded position
+            int sliceIndex = 0;
+            if (geneSlices == 1) 
+            { 
+                sliceIndex = new System.Random().Next(1, 7) * 3; //Excludes 0 and 7 to avoid parent copies 
+            }
+            else
+            {
+                sliceIndex = new System.Random().Next(0, 8) * 3;
+            }
+
             if (!sliceIndexes.Contains(sliceIndex)) { sliceIndexes[i] = sliceIndex; }
         }
 
@@ -139,68 +150,54 @@ public static class GeneticManager
             currentIndex = sliceIndexes[i];
         }
 
-        BoardSetting firstChild = new BoardSetting(firstChildTape);
-        BoardSetting secondChild = new BoardSetting(secondChildTape);
+        Debug.Log($" p1={parent1} | p2= {parent2} | point = {sliceIndexes[0] / 3}\n" +
+            $" fst child = {PrintArray(firstChildTape)} | snd child ={PrintArray(secondChildTape)}");
 
-        Debug.Log($" p1={parent1} | p2= {parent2} | point = {sliceIndexes[0] / 3}\n fst child = {firstChild} | snd child ={secondChild}");
-
-        return (firstChild: firstChild, secondChild: secondChild);
+        return (firstChild: firstChildTape, secondChild: secondChildTape);
     }
 
     // Auxliar function to help build the genetic tape of the children on crossover 
-    private static int[] BuildChildrenTapes(BoardSetting baseParent, BoardSetting sndParent, int currIndex, int sliceIndex, int[] childTape)
+    private static int[] BuildChildrenTapes(BoardSetting incomingParent, BoardSetting baseGeneParent, int currIndex, int sliceIndex, int[] childTape)
     {
-        int[] tmpTape = childTape.Concat(Enumerable.Repeat(-1, sliceIndex - currIndex).ToArray()).ToArray();
-        int[] parentGeneSlice = baseParent.GetGeneticBinaryTape()[currIndex..sliceIndex].ToArray();
+        int[] resultTape = childTape.Concat(new int[sliceIndex - currIndex]).ToArray(); // Result child array
+        int[] parentGeneSlice = incomingParent.GetGeneticBinaryTape()[currIndex..sliceIndex]; // The parent slice incoming to child
 
-        //Repet crossover genes avoiding duplicates
-        int currChildGene = currIndex;
-        for (int i = 0; i < sliceIndex - currIndex; i+=3)
+        // The tape that the crossover will use as base
+        int[] concatedParentGeneSlice = parentGeneSlice.Concat(incomingParent.GetGeneticBinaryTape()).ToArray();
+
+        int currChildGene = currIndex; // The current gene on child that will be updated
+        int parentGeneSliceIndex = 0;  // The parent gene on analysis
+
+        // Insert the genes on child avoiding repeating genes
+        while (currChildGene < sliceIndex)
         {
-            int[] gene = parentGeneSlice[i..(i + 3)];
+            if (currIndex == 9) { 
+                int aaa = 5; }
 
-            bool contains = ContainsGene(parentGeneSlice, gene);
+            int[] gene = new int[2];
+            try
+            {
+                gene = concatedParentGeneSlice[parentGeneSliceIndex..(parentGeneSliceIndex + 3)];
+            }
+            catch
+            {
+                Debug.Log(currIndex / 3);
+            }
+
+            bool contains = ContainsGene(resultTape, gene);
 
             if (!contains)
             {
-                tmpTape[currChildGene] = gene[0];
-                tmpTape[currChildGene + 1] = gene[1];
-                tmpTape[currChildGene + 2] = gene[2];
+                resultTape[currChildGene] = gene[0];
+                resultTape[currChildGene + 1] = gene[1];
+                resultTape[currChildGene + 2] = gene[2];
                 currChildGene += 3;
             }
+
+            parentGeneSliceIndex += 3;
         }
 
-        //Fill the gaps in the child with the second parent genes
-        for (int i = 0; i < tmpTape.Length; i+=3)
-        {
-            int[] gene = tmpTape[i..(i+3)];
-            int[] parentGene = sndParent.GetGeneticBinaryTape()[0..3];
-
-            if (Enumerable.SequenceEqual(gene,new int[] { -1, -1, -1 }))
-            {
-                bool contains = ContainsGene(tmpTape, parentGene);
-
-                int currSndParentGene = 0;
-                while (contains)
-                {
-                    currSndParentGene += 3;
-                    parentGene = sndParent.GetGeneticBinaryTape()[currSndParentGene..(currSndParentGene+3)];
-                    contains = ContainsGene(tmpTape, parentGene);
-                }
-                tmpTape[i] = parentGene[currSndParentGene];
-                tmpTape[i+1] = parentGene[currSndParentGene+1];
-                tmpTape[i+2] = parentGene[currSndParentGene+2];
-            }
-        }
-
-        string tmp = "";
-        foreach (var gene in tmpTape)
-        {
-            tmp += gene;
-        }
-        Debug.Log(tmp);
-
-        return tmpTape;
+        return resultTape;
     }
 
     // Checks if a given gene is the genoma
@@ -276,4 +273,9 @@ public static class GeneticManager
     Debug.Log($"Original: {originalGeneTxt} \n Mutant: {mutantGeneTxt}");
   }
 
+
+  public static string PrintArray(int[] array)
+    {
+        return string.Join(" ", array.Select(n => n.ToString()));
+    }
 }
