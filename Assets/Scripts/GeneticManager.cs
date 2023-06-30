@@ -153,47 +153,43 @@ public static class GeneticManager
         int[] tmpTape = childTape.Concat(Enumerable.Repeat(-1, sliceIndex - currIndex).ToArray()).ToArray();
         int[] parentGeneSlice = baseParent.GetGeneticBinaryTape()[currIndex..sliceIndex].ToArray();
 
+        //Repet crossover genes avoiding duplicates
         int currChildGene = currIndex;
-        for (int i = 0; i < sliceIndex - currIndex; i++)
+        for (int i = 0; i < sliceIndex - currIndex; i+=3)
         {
-            int[] gene = parentGeneSlice[i..(i+2)];
-            bool contains = false;
+            int[] gene = parentGeneSlice[i..(i + 3)];
 
-            for(int j=0; j < 8; j += 3)
-            {
-                if (parentGeneSlice[j..(j+2)] == gene)
-                {
-                    contains= true;
-                }
-            }
+            bool contains = ContainsGene(parentGeneSlice, gene);
 
             if (!contains)
             {
                 tmpTape[currChildGene] = gene[0];
-                tmpTape[currChildGene+1] = gene[1];
-                tmpTape[currChildGene+2] = gene[2];
+                tmpTape[currChildGene + 1] = gene[1];
+                tmpTape[currChildGene + 2] = gene[2];
                 currChildGene += 3;
             }
         }
 
-
-        // The code bellow is broken
-        for (int i = 0; i < tmpTape.Length; i++)
+        //Fill the gaps in the child with the second parent genes
+        for (int i = 0; i < tmpTape.Length; i+=3)
         {
-            int gene = tmpTape[i];
-            if (gene == -1)
-            {
-                int currSndParentGene = 0;
-                int parentGene = sndParent.GetGeneticBinaryTape()[currSndParentGene];
+            int[] gene = tmpTape[i..(i+3)];
+            int[] parentGene = sndParent.GetGeneticBinaryTape()[0..3];
 
-                while (tmpTape.Contains(parentGene))
+            if (Enumerable.SequenceEqual(gene,new int[] { -1, -1, -1 }))
+            {
+                bool contains = ContainsGene(tmpTape, parentGene);
+
+                int currSndParentGene = 0;
+                while (contains)
                 {
                     currSndParentGene += 3;
-                    Debug.Log(currSndParentGene);
-                    parentGene = sndParent.GetGeneticBinaryTape()[currSndParentGene];
-
+                    parentGene = sndParent.GetGeneticBinaryTape()[currSndParentGene..(currSndParentGene+3)];
+                    contains = ContainsGene(tmpTape, parentGene);
                 }
-                tmpTape[i] = parentGene;
+                tmpTape[i] = parentGene[currSndParentGene];
+                tmpTape[i+1] = parentGene[currSndParentGene+1];
+                tmpTape[i+2] = parentGene[currSndParentGene+2];
             }
         }
 
@@ -205,6 +201,21 @@ public static class GeneticManager
         Debug.Log(tmp);
 
         return tmpTape;
+    }
+
+    // Checks if a given gene is the genoma
+    static bool ContainsGene(int[] genoma, int[] gene)
+    {
+        bool contains = false;
+        for (int j = 0; j < genoma.Length; j += 3)
+        {
+            if (Enumerable.SequenceEqual(genoma[j..(j + 3)], gene))
+            {
+                contains = true;
+            }
+        }
+
+        return contains;
     }
 
     public static int[] MutateChild(int[] childGenes, float mutationProb)

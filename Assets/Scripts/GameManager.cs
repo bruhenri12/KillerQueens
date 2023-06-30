@@ -52,7 +52,11 @@ public class GameManager : MonoBehaviour
     {
       for (int i = 0; i < sizeOfPopulation; i++)
       {
-        GeneticManager.GenerateOffspring(boardSettings[0], boardSettings[1], 2);
+        int[] p1 = { 0,0,0, 0,1,1, 0,1,0, 1,1,1, 0,0,1, 1,0,1, 1,1,0, 1,0,0 };
+        int[] p2 = { 0,1,1, 1,1,1, 0,0,1, 0,0,0, 1,0,0, 1,1,0, 0,1,0, 1,0,1 };
+
+        //GeneticManager.GenerateOffspring(boardSettings[0], boardSettings[1], 2);
+        GeneticManager.GenerateOffspring(new BoardSetting(p1), new BoardSetting(p2), 2);
         return;
 
       //Placeholder to simulate breeding
