@@ -87,66 +87,127 @@ public static class GeneticManager
   }
 
   public static (BoardSetting firstChild, BoardSetting secondChild) Crossover(BoardSetting parent1, BoardSetting parent2, int geneSlices=1)
-  {
-    int[] sliceIndexes = new int[geneSlices];
-
-    // Set indexes for slicing the gene tape
-    for (int i = 0; i < geneSlices; i++)
     {
-      int sliceIndex = new System.Random().Next(0, 8) * 3; //Get the start of the encoded position
-      if (!sliceIndexes.Contains(sliceIndex)) { sliceIndexes[i] = sliceIndex; }
-    }
+        int[] sliceIndexes = new int[geneSlices];
 
-    Array.Sort(sliceIndexes);
-    int[] firstChildTape = parent1.GetGeneticBinaryTape()[0..sliceIndexes[0]];
-    int[] secondChildTape = parent2.GetGeneticBinaryTape()[0..sliceIndexes[0]];
-
-    // If only 1 slice, add last genes
-    if (geneSlices == 1) { 
-      firstChildTape = firstChildTape.Concat(parent2.GetGeneticBinaryTape()[sliceIndexes[0]..(24)]).ToArray(); 
-      secondChildTape = secondChildTape.Concat(parent1.GetGeneticBinaryTape()[sliceIndexes[0]..(24)]).ToArray();
-    }
-
-    int currentIndex = sliceIndexes[0];
-    for (int i = 1; i < geneSlices; i++)
-    {
-      if (i % 2 == 0)
-      { 
-        firstChildTape = firstChildTape.Concat(parent1.GetGeneticBinaryTape()[currentIndex..sliceIndexes[i]]).ToArray();
-        secondChildTape = secondChildTape.Concat(parent2.GetGeneticBinaryTape()[currentIndex..sliceIndexes[i]]).ToArray();
-      }
-      else
-      {
-        firstChildTape = firstChildTape.Concat(parent2.GetGeneticBinaryTape()[currentIndex..sliceIndexes[i]]).ToArray();
-        secondChildTape = secondChildTape.Concat(parent1.GetGeneticBinaryTape()[currentIndex..sliceIndexes[i]]).ToArray();
-      }
-
-      // Adding last genes
-      if (i == geneSlices - 1)
-      {
-        if (i % 2 == 0) 
+        // Set indexes for slicing the gene tape
+        for (int i = 0; i < geneSlices; i++)
         {
-          firstChildTape = firstChildTape.Concat(parent1.GetGeneticBinaryTape()[sliceIndexes[i]..(24)]).ToArray();
-          secondChildTape = secondChildTape.Concat(parent2.GetGeneticBinaryTape()[sliceIndexes[i]..(24)]).ToArray();
+            int sliceIndex = new System.Random().Next(0, 8) * 3; //Get the start of the encoded position
+            if (!sliceIndexes.Contains(sliceIndex)) { sliceIndexes[i] = sliceIndex; }
         }
-        else
-        { 
-          firstChildTape = firstChildTape.Concat(parent2.GetGeneticBinaryTape()[sliceIndexes[i]..(24)]).ToArray();
-          secondChildTape = secondChildTape.Concat(parent1.GetGeneticBinaryTape()[sliceIndexes[i]..(24)]).ToArray();
+
+        Array.Sort(sliceIndexes);
+        int[] firstChildTape = parent1.GetGeneticBinaryTape()[0..sliceIndexes[0]];
+        int[] secondChildTape = parent2.GetGeneticBinaryTape()[0..sliceIndexes[0]];
+
+        // If only 1 slice, add last genes
+        if (geneSlices == 1)
+        {
+            firstChildTape = BuildChildrenTapes(parent2, parent1, sliceIndexes[0], parent2.GetGeneticBinaryTape().Length, firstChildTape); 
+            secondChildTape = BuildChildrenTapes(parent1, parent2,  sliceIndexes[0], parent1.GetGeneticBinaryTape().Length, secondChildTape);       
         }
-      }
-      currentIndex = sliceIndexes[i];
+
+        int currentIndex = sliceIndexes[0];
+        for (int i = 1; i < geneSlices; i++)
+        {
+            if (i % 2 == 0)
+            {
+                firstChildTape = BuildChildrenTapes(parent1, parent2, currentIndex, sliceIndexes[i], firstChildTape);
+                secondChildTape = BuildChildrenTapes(parent2, parent1, currentIndex, sliceIndexes[i], secondChildTape);
+            }
+            else
+            {
+                firstChildTape = BuildChildrenTapes(parent2, parent1, currentIndex, sliceIndexes[i], firstChildTape);
+                secondChildTape = BuildChildrenTapes(parent1, parent2, currentIndex, sliceIndexes[i], secondChildTape);
+            }
+
+            // Adding last genes
+            if (i == geneSlices - 1)
+            {
+                if (i % 2 == 0)
+                {
+                    firstChildTape = BuildChildrenTapes(parent1, parent2, currentIndex, parent1.GetGeneticBinaryTape().Length, firstChildTape);
+                    secondChildTape = BuildChildrenTapes(parent2, parent1, currentIndex, parent2.GetGeneticBinaryTape().Length, secondChildTape);
+                }
+                else
+                {
+                    firstChildTape = BuildChildrenTapes(parent2, parent1, currentIndex, parent2.GetGeneticBinaryTape().Length, firstChildTape);
+                    secondChildTape = BuildChildrenTapes(parent1, parent2, currentIndex, parent1.GetGeneticBinaryTape().Length, secondChildTape);
+                }
+            }
+            currentIndex = sliceIndexes[i];
+        }
+
+        BoardSetting firstChild = new BoardSetting(firstChildTape);
+        BoardSetting secondChild = new BoardSetting(secondChildTape);
+
+        Debug.Log($" p1={parent1} | p2= {parent2} | point = {sliceIndexes[0] / 3}\n fst child = {firstChild} | snd child ={secondChild}");
+
+        return (firstChild: firstChild, secondChild: secondChild);
     }
 
-    BoardSetting firstChild = new BoardSetting(firstChildTape);
-    BoardSetting secondChild = new BoardSetting(secondChildTape);
+    // Auxliar function to help build the genetic tape of the children on crossover 
+    private static int[] BuildChildrenTapes(BoardSetting baseParent, BoardSetting sndParent, int currIndex, int sliceIndex, int[] childTape)
+    {
+        int[] tmpTape = childTape.Concat(Enumerable.Repeat(-1, sliceIndex - currIndex).ToArray()).ToArray();
+        int[] parentGeneSlice = baseParent.GetGeneticBinaryTape()[currIndex..sliceIndex].ToArray();
 
-    Debug.Log($" p1={parent1} | p2= {parent2} | point = {sliceIndexes[0]/3}\n fst child = {firstChild} | snd child ={secondChild}");
+        int currChildGene = currIndex;
+        for (int i = 0; i < sliceIndex - currIndex; i++)
+        {
+            int[] gene = parentGeneSlice[i..(i+2)];
+            bool contains = false;
 
-    return (firstChild: firstChild, secondChild: secondChild);
-  }
+            for(int j=0; j < 8; j += 3)
+            {
+                if (parentGeneSlice[j..(j+2)] == gene)
+                {
+                    contains= true;
+                }
+            }
 
-  public static int[] MutateChild(int[] childGenes, float mutationProb)
+            if (!contains)
+            {
+                tmpTape[currChildGene] = gene[0];
+                tmpTape[currChildGene+1] = gene[1];
+                tmpTape[currChildGene+2] = gene[2];
+                currChildGene += 3;
+            }
+        }
+
+
+        // The code bellow is broken
+        for (int i = 0; i < tmpTape.Length; i++)
+        {
+            int gene = tmpTape[i];
+            if (gene == -1)
+            {
+                int currSndParentGene = 0;
+                int parentGene = sndParent.GetGeneticBinaryTape()[currSndParentGene];
+
+                while (tmpTape.Contains(parentGene))
+                {
+                    currSndParentGene += 3;
+                    Debug.Log(currSndParentGene);
+                    parentGene = sndParent.GetGeneticBinaryTape()[currSndParentGene];
+
+                }
+                tmpTape[i] = parentGene;
+            }
+        }
+
+        string tmp = "";
+        foreach (var gene in tmpTape)
+        {
+            tmp += gene;
+        }
+        Debug.Log(tmp);
+
+        return tmpTape;
+    }
+
+    public static int[] MutateChild(int[] childGenes, float mutationProb)
   {
     // Amount of genes on the array of binaries converted do integers 
     int genesCount = childGenes.Length / 3;
