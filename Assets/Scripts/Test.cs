@@ -87,7 +87,10 @@ public class Test : MonoBehaviour
         {
             for (int j = currentSplitIndex; j < 24; j += 3)
             {
-                if (ContainsGene(fstChildGene,p1[j..(j+3)]))
+                string incomingFstChildGene = (splitsNumber == 1) ? p2[j..(j + 3)] : p1[j..(j+3)];
+                string incomingSndChildGene = (splitsNumber == 1) ? p1[j..(j + 3)] : p2[j..(j + 3)];
+
+                if (ContainsGene(fstChildGene,incomingFstChildGene))
                 {
                     fstChildGene += "---";
                     fstChildNullsIndexes.Add(j);
@@ -95,17 +98,17 @@ public class Test : MonoBehaviour
                 }
                 else
                 {
-                    fstChildGene += p1[j..(j+3)];
+                    fstChildGene += incomingFstChildGene;
                 }
 
-                if (ContainsGene(sndChildGene,p2[j..(j+3)]))
+                if (ContainsGene(sndChildGene, incomingSndChildGene))
                 {
                     sndChildGene += "---";
                     sndChildNullsIndexes.Add(j);
                 }
                 else
                 {
-                    sndChildGene += p2[j..(j+3)];
+                    sndChildGene += incomingSndChildGene;
                 }
             }
         }
@@ -140,9 +143,16 @@ public class Test : MonoBehaviour
             StringBuilder fstChildStringBuilder = new StringBuilder(fstChildGene);
             for (int i = 0; i < p2.Length; i += 3)
             {
-                if (!ContainsGene(fstChildGene,p2[i..(i+3)]))
+                if (!ContainsGene(fstChildGene, p2[i..(i + 3)]))
                 {
-                    fstChildGene = fstChildStringBuilder.Remove(index,3).Insert(index,p2[i..(i+3)]).ToString();
+                    if (splitsNumber == 1)
+                    {
+                        fstChildGene = fstChildStringBuilder.Remove(index, 3).Append(p2[i..(i + 3)]).ToString();
+                    }
+                    else
+                    {
+                        fstChildGene = fstChildStringBuilder.Remove(index, 3).Insert(index, p2[i..(i + 3)]).ToString();
+                    }
                 }
             }
         }
@@ -150,9 +160,17 @@ public class Test : MonoBehaviour
         {
             for (int i = 0; i < p1.Length; i += 3)
             {
-                if (!ContainsGene(sndChildGene,p1[i..(i+3)]))
+                StringBuilder sndChildStringBuilder = new StringBuilder(sndChildGene);
+                if (!ContainsGene(sndChildGene, p1[i..(i + 3)]))
                 {
-                    sndChildGene = sndChildGene.Remove(index,3).Insert(index,p1[i..(i+3)]).ToString();
+                    if (splitsNumber == 1)
+                    {
+                        sndChildGene = sndChildStringBuilder.Remove(index, 3).Append(p1[i..(i + 3)]).ToString();
+                    }
+                    else
+                    {
+                        sndChildGene = sndChildGene.Remove(index, 3).Insert(index, p1[i..(i + 3)]).ToString();
+                    }
                 }
             }
         }
