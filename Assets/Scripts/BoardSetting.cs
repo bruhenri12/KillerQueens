@@ -85,7 +85,7 @@ public class BoardSetting
                 tmp += ",";
             }
         }
-        tmp += "]";
+        tmp += $"] (F={Fitness})";
         return tmp;
     }
 }

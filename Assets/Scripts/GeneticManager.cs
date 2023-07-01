@@ -171,9 +171,6 @@ public static class GeneticManager
         // Insert the genes on child avoiding repeating genes
         while (currChildGene < sliceIndex)
         {
-            if (currIndex == 9) { 
-                int aaa = 5; }
-
             int[] gene = new int[2];
             try
             {
@@ -249,7 +246,37 @@ public static class GeneticManager
     return childGenes;
   }
 
-  public static void DebugMutateChild(int[] genTape)
+
+    public static (BoardSetting parent1, BoardSetting parent2) ChooseParents(BoardSetting[] population)
+    {
+        var chooser = new System.Random();
+
+        int bestFit1 = int.MaxValue;
+        int bestFit2 = int.MaxValue;
+        BoardSetting bestPop1 = null;
+        BoardSetting bestPop2 = null;
+
+        for(int i=0; i < 5; i++)
+        {
+            BoardSetting choosen = population[chooser.Next(population.Length)];
+            if(choosen.Fitness < bestFit1)
+            {
+                bestFit1 = choosen.Fitness;
+                bestPop1 = choosen;
+            }
+            else if(choosen.Fitness < bestFit2)
+            {
+                bestFit2 = choosen.Fitness;
+                bestPop2 = choosen;
+            }
+        }
+
+        return (parent1: bestPop1, parent2: bestPop2);
+    }
+
+    //Debug methods bellow
+
+    public static void DebugMutateChild(int[] genTape)
   {
     //Method used only for test purpose of the MutateChild method. It can be safetly deleted later
     string originalGeneTxt = "| ";
