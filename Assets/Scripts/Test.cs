@@ -19,9 +19,6 @@ public class Test : MonoBehaviour
         string p1 = ConvertToBinaryTape(GeneticManager.ConvertToIntTape(parentsGenes[0]));
         string p2 = ConvertToBinaryTape(GeneticManager.ConvertToIntTape(parentsGenes[1]));
         
-        Debug.Log("Parent 1: "+p1);
-        Debug.Log("Parent 2: "+p2);
-        
         string fstChildGene = "";
         string sndChildGene = "";
 
@@ -138,61 +135,30 @@ public class Test : MonoBehaviour
             }
         }
 
-        Debug.Log("Child 1: "+fstChildGene);
-        Debug.Log("Child 2: "+sndChildGene);
-
         foreach (int index in fstChildNullsIndexes)
         {
             StringBuilder fstChildStringBuilder = new StringBuilder(fstChildGene);
-            for (int i = 0; i < sndChildGene.Length; i += 3)
+            for (int i = 0; i < p2.Length; i += 3)
             {
-                if (!ContainsGene(fstChildGene,sndChildGene[i..(i+3)]))
+                if (!ContainsGene(fstChildGene,p2[i..(i+3)]))
                 {
-                    fstChildGene = fstChildStringBuilder.Remove(index,3).Insert(index,sndChildGene[i..(i+3)]).ToString();
+                    fstChildGene = fstChildStringBuilder.Remove(index,3).Insert(index,p2[i..(i+3)]).ToString();
                 }
             }
         }
         foreach (int index in sndChildNullsIndexes)
         {
-            for (int i = 0; i < fstChildGene.Length; i += 3)
+            for (int i = 0; i < p1.Length; i += 3)
             {
-                if (!ContainsGene(sndChildGene,fstChildGene[i..(i+3)]))
+                if (!ContainsGene(sndChildGene,p1[i..(i+3)]))
                 {
-                    sndChildGene = sndChildGene.Remove(index,3).Insert(index,fstChildGene[i..(i+3)]).ToString();
-                }
-            }
-        }
-
-        for (int i = 0; i < 24; i += 3)
-        {
-            if (fstChildGene[i] == '-')
-            {
-                for (int j = 0; j < 24; j += 3)
-                {
-                    if (!ContainsGene(fstChildGene, p1[j..(j+3)]))
-                    {
-                        fstChildGene = fstChildGene.Remove(i,3).Insert(i,p1[j..(j+3)]).ToString();
-                    }
-                }
-            }
-            if (sndChildGene[i] == '-')
-            {
-                for (int j = 0; j < 24; j += 3)
-                {
-                    if (!ContainsGene(sndChildGene, p2[j..(j+3)]))
-                    {
-                        sndChildGene = sndChildGene.Remove(i,3).Insert(i,p2[j..(j+3)]).ToString();
-                    }
+                    sndChildGene = sndChildGene.Remove(index,3).Insert(index,p1[i..(i+3)]).ToString();
                 }
             }
         }
         
-        Debug.Log("Child 1 (corrected): "+fstChildGene);
-        Debug.Log("Child 2 (corrected): "+sndChildGene);
-
-        
-        Debug.Log("Converting: "+TapeString(ConvertToIntTape(fstChildGene)));
-        Debug.Log("Converting: "+TapeString(ConvertToIntTape(sndChildGene)));
+        Debug.Log("Child 1: "+TapeString(ConvertToIntTape(fstChildGene)));
+        Debug.Log("Child 2: "+TapeString(ConvertToIntTape(sndChildGene)));
         
     }
 
