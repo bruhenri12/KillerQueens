@@ -74,7 +74,12 @@ public class GameManager : MonoBehaviour
       manipulator.OnUpdateQueens(bestSetting);
 
       PrintPopulationFitness();
-      iter++; 
+      iter++;
+
+      //Placeholder to simulate natural selection
+      var offspring = new BoardSetting[2] { new BoardSetting(), new BoardSetting() };
+      Debug.Log("Offspring: " + offspring[0] + " \n " + offspring[1]);
+      GeneticManager.SurvivorSelection(boardSettings, offspring);
     }
 
     Debug.Log("Acabou o loop!" + "\nCollisions: " + bestSetting.Fitness.ToString());

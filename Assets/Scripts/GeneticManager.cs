@@ -256,11 +256,21 @@ public static class GeneticManager
         BoardSetting bestPop1 = null;
         BoardSetting bestPop2 = null;
 
+        var tmp = "candidates: ";
+
         for(int i=0; i < 5; i++)
         {
             BoardSetting choosen = population[chooser.Next(population.Length)];
+            tmp += choosen.Fitness + " | ";
+
             if(choosen.Fitness < bestFit1)
             {
+                if (bestFit1 > bestFit2)
+                {
+                    bestFit2 = bestFit1;
+                    bestPop2 = bestPop1;
+                }
+
                 bestFit1 = choosen.Fitness;
                 bestPop1 = choosen;
             }
@@ -271,7 +281,42 @@ public static class GeneticManager
             }
         }
 
+        Debug.Log(tmp);
         return (parent1: bestPop1, parent2: bestPop2);
+    }
+
+    public static BoardSetting[] SurvivorSelection(BoardSetting[] population, BoardSetting[] offspring)
+    {
+        int[] worstFitIndexes = new int[offspring.Length];
+
+        for(int i = 0; i < offspring.Length; i++)
+        {
+            int currWorstFit = -1;
+            int currWorstIndex = -1;
+
+            for (int j = 0; j < population.Length; j++)
+            {
+                BoardSetting currPop = population[j];
+                for (int k = 0; k < offspring.Length; k++)
+                {
+                    if (currPop.Fitness > currWorstFit && !worstFitIndexes.Contains(j))
+                    {
+                        currWorstFit = currPop.Fitness;
+                        currWorstIndex = j;
+                    }
+                }
+                worstFitIndexes[i] = currWorstIndex;
+            }
+        }
+
+        for (int i=0; i < offspring.Length; i++)
+        {
+            int worstFitIndex = worstFitIndexes[i];
+            Debug.Log($"({i}) {population[worstFitIndex]} <- {offspring[i]}");
+            population[worstFitIndex] = offspring[i];
+        }
+
+        return population;
     }
 
     //Debug methods bellow

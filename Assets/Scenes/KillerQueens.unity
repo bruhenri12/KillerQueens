@@ -6065,9 +6065,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e606d4b1255d4b34d998602f857cdb03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  splitsNumber: 1
+  splitsNumber: 3
   childCount: 2
-  splitsIndexes: 02000000
+  splitsIndexes: 020000000400000006000000
 --- !u!1 &1638868228
 GameObject:
   m_ObjectHideFlags: 0
