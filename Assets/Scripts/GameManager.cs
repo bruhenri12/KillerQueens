@@ -11,7 +11,8 @@ public class GameManager : MonoBehaviour
   [SerializeField] private int offspringSize = 2;
   [SerializeField] [Range(0,1)]  private float mutationProb = 0.4f;
   [SerializeField] [Range(0,1)]  private float crossoverProb = 0.9f;
-    [SerializeField] private int[] geneSlices = { 2, 4, 6 };
+  [SerializeField] int splitsNumber = 1; 
+  [SerializeField] private int[] geneSlices = { 2, 4, 6 };
 
   public BoardSetting[] boardSettings;
   private BoardSetting bestSetting;
@@ -55,24 +56,12 @@ public class GameManager : MonoBehaviour
 
     while (bestFitness != 0 && iter < maxIterations)
     {
-      for (int i = 0; i < sizeOfPopulation; i++)
-      {
-        //int[] p1 = { 0,0,0, 0,1,1, 0,1,0, 1,1,1, 0,0,1, 1,0,1, 1,1,0, 1,0,0 };
-        //int[] p2 = { 0,1,1, 1,1,1, 0,0,1, 0,0,0, 1,0,0, 1,1,0, 0,1,0, 1,0,1 };
-
-        //GeneticManager.GenerateOffspring(boardSettings[0], boardSettings[1], 2);
-        //GeneticManager.GenerateOffspring(new BoardSetting(p1), new BoardSetting(p2), 2);
-        
-        //Placeholder to simulate breeding
-        //boardSettings[i] = new BoardSetting();
-      }
-
       var parents = GeneticManager.ChooseParents(boardSettings);
       Debug.Log("p1: " + parents.parent1.ToString());
       Debug.Log("p2: " + parents.parent2.ToString());
 
       var offspring = GeneticManager.GenerateOffspring(parents.parent1, parents.parent2, offspringSize,
-                                                        geneSlices.Length,geneSlices,mutationProb,crossoverProb);
+                                                        splitsNumber,geneSlices,mutationProb,crossoverProb);
 
       Debug.Log("Offspring: " + offspring[0] + " \n " + offspring[1]);
 
@@ -87,8 +76,6 @@ public class GameManager : MonoBehaviour
 
       PrintPopulationFitness();
       iter++;
-
-      //Placeholder to simulate natural selection
     }
 
     Debug.Log("Acabou o loop!" + "\nCollisions: " + bestSetting.Fitness.ToString());

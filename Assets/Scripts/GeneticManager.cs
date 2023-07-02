@@ -158,6 +158,26 @@ public static class GeneticManager
         List<int> fstChildNullsIndexes = new List<int>();
         List<int> sndChildNullsIndexes = new List<int>();
 
+        //Generate random splits if not given by user
+        if(splitsIndexes == null || splitsIndexes.Length == 0)
+        {
+            splitsIndexes = new int[splitsNumber];
+            var splitRandomNumber = new System.Random();
+            int newSplit = -1;
+            for (int i=0; i<splitsNumber; i++)
+            {
+                while (newSplit == -1 || splitsIndexes.Contains(newSplit))
+                {
+                    newSplit = splitRandomNumber.Next(1, 7);
+                }
+                splitsIndexes[i] = newSplit;
+                newSplit = -1;
+            }
+
+            Array.Sort(splitsIndexes);
+            Debug.Log(PrintArray(splitsIndexes,"Split Indexes: "));
+        }
+
         int currentSplitIndex = 0;
 
         for (int i = 0; i < splitsNumber; i++)
@@ -473,8 +493,8 @@ public static class GeneticManager
   }
 
 
-  public static string PrintArray(int[] array)
+  public static string PrintArray(int[] array, string msg="")
     {
-        return string.Join(" ", array.Select(n => n.ToString()));
+        return msg + string.Join(" ", array.Select(n => n.ToString()));
     }
 }
