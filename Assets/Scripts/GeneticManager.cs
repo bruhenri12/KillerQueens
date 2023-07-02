@@ -112,15 +112,17 @@ public static class GeneticManager
     public static BoardSetting[] GenerateOffspring(
     BoardSetting parent1, BoardSetting parent2,
     int offspringSize, int geneSlices, int[] sliceIndexes,
-    float mutationProb, bool cloneParents = false
+    float mutationProb, float crossoverProb
   )
   {
     BoardSetting[] offspring = new BoardSetting[offspringSize];
+    int crossoverRandomNumber = new System.Random().Next(0, 101);
 
-    if (cloneParents || geneSlices == 0)
+    if (geneSlices == 0 || crossoverRandomNumber <= (1-crossoverProb) * 100)
     {
       for (int i = 0; i < offspringSize; i++)
       {
+        Debug.Log("copied parent");
         if (i % 2 == 0) { offspring[i] = parent1; }
         else { offspring[i] = parent2; }
       }
