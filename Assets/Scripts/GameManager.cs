@@ -8,7 +8,10 @@ public class GameManager : MonoBehaviour
   [Header("Parameters")]
   [SerializeField] private int sizeOfPopulation = 100;
   [SerializeField] private int maxIterations = 10;
-  public BoardSetting[] boardSettings;
+  [SerializeField] private int offspringSize = 2;
+  [SerializeField] private int[] geneSlices = { 2, 4, 6 };
+
+    public BoardSetting[] boardSettings;
   private BoardSetting bestSetting;
 
   //Return the best setting among the various boardSettings
@@ -59,12 +62,19 @@ public class GameManager : MonoBehaviour
         //GeneticManager.GenerateOffspring(new BoardSetting(p1), new BoardSetting(p2), 2);
         
         //Placeholder to simulate breeding
-        boardSettings[i] = new BoardSetting();
+        //boardSettings[i] = new BoardSetting();
       }
 
       var parents = GeneticManager.ChooseParents(boardSettings);
       Debug.Log("p1: " + parents.parent1.ToString());
       Debug.Log("p2: " + parents.parent2.ToString());
+
+      var offspring = GeneticManager.GenerateOffspring(parents.parent1, parents.parent2, offspringSize,
+                                                        geneSlices.Length, geneSlices);
+
+      Debug.Log("Offspring: " + offspring[0] + " \n " + offspring[1]);
+
+      boardSettings = GeneticManager.SurvivorSelection(boardSettings, offspring);
 
       //Update best setting
       bestSetting = GetBestSetting(boardSettings);
@@ -77,9 +87,6 @@ public class GameManager : MonoBehaviour
       iter++;
 
       //Placeholder to simulate natural selection
-      var offspring = new BoardSetting[2] { new BoardSetting(), new BoardSetting() };
-      Debug.Log("Offspring: " + offspring[0] + " \n " + offspring[1]);
-      GeneticManager.SurvivorSelection(boardSettings, offspring);
     }
 
     Debug.Log("Acabou o loop!" + "\nCollisions: " + bestSetting.Fitness.ToString());

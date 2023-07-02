@@ -16,8 +16,8 @@ public class Test : MonoBehaviour
     };
     public void Crossover()
     {
-        string p1 = ConvertToBinaryTape(GeneticManager.ConvertToIntTape(parentsGenes[0]));
-        string p2 = ConvertToBinaryTape(GeneticManager.ConvertToIntTape(parentsGenes[1]));
+        string p1 = ConvertToStringBinaryTape(GeneticManager.ConvertToIntTape(parentsGenes[0]));
+        string p2 = ConvertToStringBinaryTape(GeneticManager.ConvertToIntTape(parentsGenes[1]));
         
         string fstChildGene = "";
         string sndChildGene = "";
@@ -180,7 +180,7 @@ public class Test : MonoBehaviour
         
     }
 
-    public string ConvertToBinaryTape(int[] tape)
+    public string ConvertToStringBinaryTape(int[] tape)
     {
         Debug.Log("Converting: "+TapeString(tape));
         string genTape = "";

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
+using System.Text;
 
 public static class GeneticManager
 {
@@ -35,8 +36,49 @@ public static class GeneticManager
 
     return genTape;
   }
+    static string TapeString(int[] tape)
+    {
+        string tapeOut = "";
 
-  public static int[] ConvertToIntTape(int[] genTape)
+        if (tape.Length == 24)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                string bitInt = "";
+                for (int j = 0; j < 3; j++)
+                {
+                    bitInt += tape[i * 3 + j];
+                }
+                tapeOut += bitInt + " ";
+            }
+        }
+        else
+        {
+            for (int i = 0; i < tape.Length; i++)
+            {
+                tapeOut += tape[i] + " ";
+            }
+
+        }
+        return tapeOut;
+    }
+
+    public static string ConvertToStringBinaryTape(int[] tape)
+    {
+        Debug.Log("Converting: " + TapeString(tape));
+        string genTape = "";
+
+        for (int i = 0; i < 8; i++)
+        {
+            string bitString = Convert.ToString(tape[i], 2).PadLeft(3, '0');
+
+            genTape += bitString;
+        }
+
+        return genTape;
+    }
+    
+    public static int[] ConvertToIntTape(int[] genTape)
   {
     int intTapeLength = genTape.Length/3;
     int[] decTape = new int[intTapeLength];
@@ -55,9 +97,21 @@ public static class GeneticManager
     return decTape;
   }
 
-  public static BoardSetting[] GenerateOffspring(
+    public static int[] ConvertToIntTape(string tape)
+    {
+        int[] genTape = new int[8];
+
+        for (int i = 0; i < tape.Length; i += 3)
+        {
+            genTape[i / 3] = Convert.ToInt32(tape[i..(i + 3)], 2);
+        }
+
+        return genTape;
+    }
+
+    public static BoardSetting[] GenerateOffspring(
     BoardSetting parent1, BoardSetting parent2,
-    int offspringSize, int geneSlices=1,
+    int offspringSize, int geneSlices, int[] sliceIndexes,
     bool cloneParents = false
   )
   {
@@ -75,11 +129,11 @@ public static class GeneticManager
     {
       for (int i = 0; i < offspringSize; i+=2)
       {
-        var curOffspring = Crossover(parent1, parent2, geneSlices);
+        var curOffspring = Crossover(parent1, parent2, geneSlices, sliceIndexes);
         offspring[i] = new BoardSetting(curOffspring.firstChild);
 
         if(i+1 < offspringSize) { 
-          offspring[i+i] = new BoardSetting(curOffspring.secondChild);
+          offspring[i+1] = new BoardSetting(curOffspring.secondChild);
         }
       }
     }
@@ -87,118 +141,190 @@ public static class GeneticManager
     return offspring;
   }
 
-  public static (int[] firstChild, int[] secondChild) Crossover(BoardSetting parent1, BoardSetting parent2, int geneSlices=1)
-    {
-        int[] sliceIndexes = new int[geneSlices];
+  public static (string firstChild, string secondChild) Crossover(BoardSetting parent1, BoardSetting parent2,
+                    int splitsNumber, int[] splitsIndexes)
+  {
+        string p1 = ConvertToStringBinaryTape(GeneticManager.ConvertToIntTape(parent1.GetGeneticBinaryTape()));
+        string p2 = ConvertToStringBinaryTape(GeneticManager.ConvertToIntTape(parent2.GetGeneticBinaryTape()));
 
-        // Set indexes for slicing the gene tape
-        for (int i = 0; i < geneSlices; i++)
-        {
-            //Get the start of the encoded position
-            int sliceIndex = 0;
-            if (geneSlices == 1) 
-            { 
-                sliceIndex = new System.Random().Next(1, 7) * 3; //Excludes 0 and 7 to avoid parent copies 
-            }
-            else
-            {
-                sliceIndex = new System.Random().Next(0, 8) * 3;
-            }
+        string fstChildGene = "";
+        string sndChildGene = "";
 
-            if (!sliceIndexes.Contains(sliceIndex)) { sliceIndexes[i] = sliceIndex; }
-        }
+        List<int> fstChildNullsIndexes = new List<int>();
+        List<int> sndChildNullsIndexes = new List<int>();
 
-        Array.Sort(sliceIndexes);
-        int[] firstChildTape = parent1.GetGeneticBinaryTape()[0..sliceIndexes[0]];
-        int[] secondChildTape = parent2.GetGeneticBinaryTape()[0..sliceIndexes[0]];
+        int currentSplitIndex = 0;
 
-        // If only 1 slice, add last genes
-        if (geneSlices == 1)
-        {
-            firstChildTape = BuildChildrenTapes(parent2, parent1, sliceIndexes[0], parent2.GetGeneticBinaryTape().Length, firstChildTape); 
-            secondChildTape = BuildChildrenTapes(parent1, parent2,  sliceIndexes[0], parent1.GetGeneticBinaryTape().Length, secondChildTape);       
-        }
-
-        int currentIndex = sliceIndexes[0];
-        for (int i = 1; i < geneSlices; i++)
+        for (int i = 0; i < splitsNumber; i++)
         {
             if (i % 2 == 0)
             {
-                firstChildTape = BuildChildrenTapes(parent1, parent2, currentIndex, sliceIndexes[i], firstChildTape);
-                secondChildTape = BuildChildrenTapes(parent2, parent1, currentIndex, sliceIndexes[i], secondChildTape);
+                for (int j = currentSplitIndex; j < splitsIndexes[i] * 3; j += 3)
+                {
+                    if (ContainsGene(fstChildGene, p1[j..(j + 3)]))
+                    {
+                        fstChildGene += "---";
+                        fstChildNullsIndexes.Add(j);
+                    }
+                    else
+                    {
+                        fstChildGene += p1[j..(j + 3)];
+                    }
+
+                    if (ContainsGene(sndChildGene, p2[j..(j + 3)]))
+                    {
+                        sndChildGene += "---";
+                        sndChildNullsIndexes.Add(j);
+                    }
+                    else
+                    {
+                        sndChildGene += p2[j..(j + 3)];
+                    }
+                }
             }
             else
             {
-                firstChildTape = BuildChildrenTapes(parent2, parent1, currentIndex, sliceIndexes[i], firstChildTape);
-                secondChildTape = BuildChildrenTapes(parent1, parent2, currentIndex, sliceIndexes[i], secondChildTape);
+                for (int j = currentSplitIndex; j < splitsIndexes[i] * 3; j += 3)
+                {
+                    if (ContainsGene(fstChildGene, p2[j..(j + 3)]))
+                    {
+                        fstChildGene += "---";
+                        fstChildNullsIndexes.Add(j);
+                    }
+                    else
+                    {
+                        fstChildGene += p2[j..(j + 3)];
+                    }
+
+                    if (ContainsGene(sndChildGene, p1[j..(j + 3)]))
+                    {
+                        sndChildGene += "---";
+                        sndChildNullsIndexes.Add(j);
+                    }
+                    else
+                    {
+                        sndChildGene += p1[j..(j + 3)];
+                    }
+                }
             }
 
-            // Adding last genes
-            if (i == geneSlices - 1)
+            currentSplitIndex = splitsIndexes[i] * 3;
+        }
+
+        if (splitsNumber - 1 % 2 == 0)
+        {
+            for (int j = currentSplitIndex; j < 24; j += 3)
             {
-                if (i % 2 == 0)
+                string incomingFstChildGene = (splitsNumber == 1) ? p2[j..(j + 3)] : p1[j..(j + 3)];
+                string incomingSndChildGene = (splitsNumber == 1) ? p1[j..(j + 3)] : p2[j..(j + 3)];
+
+                if (ContainsGene(fstChildGene, incomingFstChildGene))
                 {
-                    firstChildTape = BuildChildrenTapes(parent1, parent2, currentIndex, parent1.GetGeneticBinaryTape().Length, firstChildTape);
-                    secondChildTape = BuildChildrenTapes(parent2, parent1, currentIndex, parent2.GetGeneticBinaryTape().Length, secondChildTape);
+                    fstChildGene += "---";
+                    fstChildNullsIndexes.Add(j);
+
                 }
                 else
                 {
-                    firstChildTape = BuildChildrenTapes(parent2, parent1, currentIndex, parent2.GetGeneticBinaryTape().Length, firstChildTape);
-                    secondChildTape = BuildChildrenTapes(parent1, parent2, currentIndex, parent1.GetGeneticBinaryTape().Length, secondChildTape);
+                    fstChildGene += incomingFstChildGene;
+                }
+
+                if (ContainsGene(sndChildGene, incomingSndChildGene))
+                {
+                    sndChildGene += "---";
+                    sndChildNullsIndexes.Add(j);
+                }
+                else
+                {
+                    sndChildGene += incomingSndChildGene;
                 }
             }
-            currentIndex = sliceIndexes[i];
         }
-
-        Debug.Log($" p1={parent1} | p2= {parent2} | point = {sliceIndexes[0] / 3}\n" +
-            $" fst child = {PrintArray(firstChildTape)} | snd child ={PrintArray(secondChildTape)}");
-
-        return (firstChild: firstChildTape, secondChild: secondChildTape);
-    }
-
-    // Auxliar function to help build the genetic tape of the children on crossover 
-    private static int[] BuildChildrenTapes(BoardSetting incomingParent, BoardSetting baseGeneParent, int currIndex, int sliceIndex, int[] childTape)
-    {
-        int[] resultTape = childTape.Concat(new int[sliceIndex - currIndex]).ToArray(); // Result child array
-        int[] parentGeneSlice = incomingParent.GetGeneticBinaryTape()[currIndex..sliceIndex]; // The parent slice incoming to child
-
-        // The tape that the crossover will use as base
-        int[] concatedParentGeneSlice = parentGeneSlice.Concat(incomingParent.GetGeneticBinaryTape()).ToArray();
-
-        int currChildGene = currIndex; // The current gene on child that will be updated
-        int parentGeneSliceIndex = 0;  // The parent gene on analysis
-
-        // Insert the genes on child avoiding repeating genes
-        while (currChildGene < sliceIndex)
+        else
         {
-            int[] gene = new int[2];
-            try
+            for (int j = currentSplitIndex; j < 24; j += 3)
             {
-                gene = concatedParentGeneSlice[parentGeneSliceIndex..(parentGeneSliceIndex + 3)];
-            }
-            catch
-            {
-                Debug.Log(currIndex / 3);
-            }
+                if (ContainsGene(fstChildGene, p2[j..(j + 3)]))
+                {
+                    fstChildGene += "---";
+                    fstChildNullsIndexes.Add(j);
+                }
+                else
+                {
+                    fstChildGene += p2[j..(j + 3)];
+                }
 
-            bool contains = ContainsGene(resultTape, gene);
-
-            if (!contains)
-            {
-                resultTape[currChildGene] = gene[0];
-                resultTape[currChildGene + 1] = gene[1];
-                resultTape[currChildGene + 2] = gene[2];
-                currChildGene += 3;
+                if (ContainsGene(sndChildGene, p1[j..(j + 3)]))
+                {
+                    sndChildGene += "---";
+                    sndChildNullsIndexes.Add(j);
+                }
+                else
+                {
+                    sndChildGene += p1[j..(j + 3)];
+                }
             }
-
-            parentGeneSliceIndex += 3;
         }
 
-        return resultTape;
+        foreach (int index in fstChildNullsIndexes)
+        {
+            StringBuilder fstChildStringBuilder = new StringBuilder(fstChildGene);
+            for (int i = 0; i < p2.Length; i += 3)
+            {
+                if (!ContainsGene(fstChildGene, p2[i..(i + 3)]))
+                {
+                    if (splitsNumber == 1)
+                    {
+                        fstChildGene = fstChildStringBuilder.Remove(index, 3).Append(p2[i..(i + 3)]).ToString();
+                    }
+                    else
+                    {
+                        fstChildGene = fstChildStringBuilder.Remove(index, 3).Insert(index, p2[i..(i + 3)]).ToString();
+                    }
+                }
+            }
+        }
+        foreach (int index in sndChildNullsIndexes)
+        {
+            for (int i = 0; i < p1.Length; i += 3)
+            {
+                StringBuilder sndChildStringBuilder = new StringBuilder(sndChildGene);
+                if (!ContainsGene(sndChildGene, p1[i..(i + 3)]))
+                {
+                    if (splitsNumber == 1)
+                    {
+                        sndChildGene = sndChildStringBuilder.Remove(index, 3).Append(p1[i..(i + 3)]).ToString();
+                    }
+                    else
+                    {
+                        sndChildGene = sndChildGene.Remove(index, 3).Insert(index, p1[i..(i + 3)]).ToString();
+                    }
+                }
+            }
+        }
+
+        Debug.Log("Child 1: " + TapeString(ConvertToIntTape(fstChildGene)));
+        Debug.Log("Child 2: " + TapeString(ConvertToIntTape(sndChildGene)));
+
+        return (firstChild: fstChildGene, secondChild: sndChildGene);
     }
 
     // Checks if a given gene is the genoma
     static bool ContainsGene(int[] genoma, int[] gene)
+    {
+        bool contains = false;
+        for (int j = 0; j < genoma.Length; j += 3)
+        {
+            if (Enumerable.SequenceEqual(genoma[j..(j + 3)], gene))
+            {
+                contains = true;
+            }
+        }
+
+        return contains;
+    }
+
+    static bool ContainsGene(string genoma, string gene)
     {
         bool contains = false;
         for (int j = 0; j < genoma.Length; j += 3)
@@ -246,7 +372,6 @@ public static class GeneticManager
     return childGenes;
   }
 
-
     public static (BoardSetting parent1, BoardSetting parent2) ChooseParents(BoardSetting[] population)
     {
         var chooser = new System.Random();
@@ -265,7 +390,7 @@ public static class GeneticManager
 
             if(choosen.Fitness < bestFit1)
             {
-                if (bestFit1 > bestFit2)
+                if (bestFit1 < bestFit2)
                 {
                     bestFit2 = bestFit1;
                     bestPop2 = bestPop1;

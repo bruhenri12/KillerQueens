@@ -24,6 +24,17 @@ public class BoardSetting
         // Set the fitness using the number of collisions
         Fitness = CheckCollisions();
     }
+    public BoardSetting(string tape)
+    {
+        // Initialize a BoardSetting object with a given tape
+        for(int i = 0; i < tape.Length; i++)
+        {
+            genTape[i] = int.Parse(tape[i].ToString());
+        }
+
+        // Set the fitness using the number of collisions
+        Fitness = CheckCollisions();
+    }
 
     //Return the tape with int genes
     public int[] GetGeneticIntTape()
