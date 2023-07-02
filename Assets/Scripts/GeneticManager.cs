@@ -112,7 +112,7 @@ public static class GeneticManager
     public static BoardSetting[] GenerateOffspring(
     BoardSetting parent1, BoardSetting parent2,
     int offspringSize, int geneSlices, int[] sliceIndexes,
-    bool cloneParents = false
+    float mutationProb, bool cloneParents = false
   )
   {
     BoardSetting[] offspring = new BoardSetting[offspringSize];
@@ -130,10 +130,13 @@ public static class GeneticManager
       for (int i = 0; i < offspringSize; i+=2)
       {
         var curOffspring = Crossover(parent1, parent2, geneSlices, sliceIndexes);
-        offspring[i] = new BoardSetting(curOffspring.firstChild);
+        var mutFstChild = MutateChild(curOffspring.firstChild, mutationProb);
+        var mutSndChild = MutateChild(curOffspring.secondChild, mutationProb);
+
+        offspring[i] = new BoardSetting(mutFstChild);
 
         if(i+1 < offspringSize) { 
-          offspring[i+1] = new BoardSetting(curOffspring.secondChild);
+          offspring[i+1] = new BoardSetting(mutSndChild);
         }
       }
     }
@@ -338,7 +341,7 @@ public static class GeneticManager
         return contains;
     }
 
-    public static int[] MutateChild(int[] childGenes, float mutationProb)
+    public static string MutateChild(string childGenes, float mutationProb)
   {
     // Amount of genes on the array of binaries converted do integers 
     int genesCount = childGenes.Length / 3;
@@ -357,16 +360,13 @@ public static class GeneticManager
         int[] validPositions = Enumerable.Range(0, 8).Where(pos => pos != i).ToArray();
         int swapRandomNumber = new System.Random().Next(0, 7);
         int swapPos = validPositions[swapRandomNumber] * 3;
-        Debug.Log($"SWAP ({mutationRandomNumber}) {i}({genePos}) <-> {swapPos / 3}({swapPos})");
+        Debug.Log($"MUT. SWAP ({mutationRandomNumber}) {i}({genePos}) <-> {swapPos / 3}({swapPos})");
 
         // Swap the positions of the mutant  genes
-        int swapAux;
-        for (int j = 0; j < 3; j++)
-        {
-          swapAux = childGenes[genePos + j];
-          childGenes[genePos + j] = childGenes[swapPos + j];
-          childGenes[swapPos + j] = swapAux;
-        }
+        string swappedGene = childGenes[genePos..(genePos+3)];
+        childGenes = childGenes[0..genePos] + childGenes[swapPos..(swapPos + 3)] + childGenes[(genePos + 3)..24];
+
+        childGenes = childGenes[0..swapPos] + swappedGene + childGenes[(swapPos + 3)..24];
       }
     }
     return childGenes;
@@ -446,23 +446,23 @@ public static class GeneticManager
 
     //Debug methods bellow
 
-    public static void DebugMutateChild(int[] genTape)
+    public static void DebugMutateChild(string genTape)
   {
     //Method used only for test purpose of the MutateChild method. It can be safetly deleted later
     string originalGeneTxt = "| ";
     for (int i = 0; i < genTape.Length; i++)
     {
-      int gene = genTape[i];
+      string gene = genTape[i].ToString();
       originalGeneTxt += gene;
       originalGeneTxt += (i % 3 == 2) ? " | " : "";
     }
 
-    int[] mutantChild = MutateChild(genTape, 0.4f);
+    string mutantChild = MutateChild(genTape, 0.4f);
 
     string mutantGeneTxt = "| ";
     for (int i = 0; i < genTape.Length; i++)
     {
-      int gene = mutantChild[i];
+      string gene = mutantChild[i].ToString();
       mutantGeneTxt += gene;
       mutantGeneTxt += (i % 3 == 2) ? " | " : "";
     }
