@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -17,7 +18,7 @@ public class GameManager : MonoBehaviour
   [SerializeField] [Range(0,1)]  private float crossoverProb = 0.9f;
   [SerializeField] int splitsNumber = 1; 
   [SerializeField] private int[] geneSlices = { 2, 4, 6 };
-  [SerializeField] private int retries = 4;
+  [SerializeField] private int executions = 4;
 
   public BoardSetting[] boardSettings;
   private BoardSetting bestSetting;
@@ -56,18 +57,18 @@ public class GameManager : MonoBehaviour
   public void OnRun()
   {
     //Reset Metrics
-    nIterations = new int[retries];
-    iterConverged = new bool[retries];
-    nConvergedPops = new int[retries];
-    avgFitness = new double[retries];
-    bestPop = new BoardSetting[retries];
+    nIterations = new int[executions];
+    iterConverged = new bool[executions];
+    nConvergedPops = new int[executions];
+    avgFitness = new double[executions];
+    bestPop = new BoardSetting[executions];
 
-    for (int i=0; i<retries; i++)
+    for (int i=0; i<executions; i++)
     {
       Epoch(i);
     }
 
-     PrintMetrics();
+     SaveAndPrintMetrics();
   }
 
     private void Epoch(int epochNum)
@@ -138,9 +139,10 @@ public class GameManager : MonoBehaviour
       Debug.Log(tmpTxt);
   }
 
-  void PrintMetrics()
+  void SaveAndPrintMetrics()
     {
         double convergenceCount = iterConverged.Count(conv => conv==true);
+        double convergencePerc = convergenceCount / executions;
 
         double avgIterNum = nIterations.Average();
         double stdIterNum = Std(nIterations);
@@ -148,10 +150,14 @@ public class GameManager : MonoBehaviour
         double avgFit = avgFitness.Average();
         double stdFit = Std(avgFitness);
 
-
-        string printTxt = $"Convergence Rate: {convergenceCount/retries}\n" +
+        string printTxt = $"Convergence Rate: {convergencePerc}\n" +
             $"Nº Iterations: avg={avgIterNum} | std={stdIterNum}\n" +
-            $"Fitness: avg={avgFit} | std={stdFit}"; 
+            $"Fitness: avg={avgFit} | std={stdFit}";
+
+        var metrics = new Metrics(nIterations,iterConverged,nConvergedPops,avgFitness, bestPop, convergencePerc, avgIterNum, stdIterNum, avgFit, stdFit);
+        var jsonString = JsonUtility.ToJson(metrics);
+        var resultsPath = @$"Assets/Metrics/Metrics {DateTime.Now.ToString("M / d / yy h: m:s tt").Replace('/', '_').Replace(':','_').Replace(" ", "")}.json";
+        File.WriteAllText(resultsPath, jsonString);    
 
         Debug.Log(printTxt);
     }
