@@ -4,6 +4,8 @@ using UnityEngine;
 using System.Linq;
 using System;
 using System.Text;
+using Unity.VisualScripting;
+using Unity.PlasticSCM.Editor.WebApi;
 
 public static class GeneticManager
 {
@@ -112,7 +114,7 @@ public static class GeneticManager
     public static BoardSetting[] GenerateOffspring(
     BoardSetting parent1, BoardSetting parent2,
     int offspringSize, int geneSlices, int[] sliceIndexes,
-    float mutationProb, float crossoverProb
+    float mutationProb, float crossoverProb, float perGeneMutationProb=0
   )
   {
     BoardSetting[] offspring = new BoardSetting[offspringSize];
@@ -132,8 +134,11 @@ public static class GeneticManager
       for (int i = 0; i < offspringSize; i+=2)
       {
         var curOffspring = Crossover(parent1, parent2, geneSlices, sliceIndexes);
-        var mutFstChild = MutateChild(curOffspring.firstChild, mutationProb);
-        var mutSndChild = MutateChild(curOffspring.secondChild, mutationProb);
+        string fstChild = curOffspring.firstChild;
+        string sndChild = curOffspring.secondChild; 
+
+        string mutFstChild = (perGeneMutationProb != 0) ? MutateChildPerGene(fstChild, perGeneMutationProb) : MutateChild(sndChild, mutationProb);
+        string mutSndChild = (perGeneMutationProb != 0) ? MutateChildPerGene(fstChild, perGeneMutationProb) : MutateChild(sndChild, mutationProb);
 
         offspring[i] = new BoardSetting(mutFstChild);
 
@@ -363,7 +368,7 @@ public static class GeneticManager
         return contains;
     }
 
-    public static string MutateChild(string childGenes, float mutationProb)
+    public static string MutateChildPerGene(string childGenes, float mutationProb)
   {
     // Amount of genes on the array of binaries converted do integers 
     int genesCount = childGenes.Length / 3;
@@ -382,7 +387,7 @@ public static class GeneticManager
         int[] validPositions = Enumerable.Range(0, 8).Where(pos => pos != i).ToArray();
         int swapRandomNumber = new System.Random().Next(0, 7);
         int swapPos = validPositions[swapRandomNumber] * 3;
-        Debug.Log($"MUT. SWAP ({mutationRandomNumber}) {i}({genePos}) <-> {swapPos / 3}({swapPos})");
+        Debug.Log($"MULTIPLE MUT. SWAP ({mutationRandomNumber}) {i}({genePos}) <-> {swapPos / 3}({swapPos})");
 
         // Swap the positions of the mutant  genes
         string swappedGene = childGenes[genePos..(genePos+3)];
@@ -393,6 +398,36 @@ public static class GeneticManager
     }
     return childGenes;
   }
+
+    public static string MutateChild(string childGenes, float mutationProb)
+    {
+        //Checks if should mutate genes
+        int mutationRandomNumber = new System.Random().Next(0, 101);
+        if (mutationRandomNumber > mutationProb * 100)
+        {
+            // Dont mutate child
+            return childGenes;
+        }
+
+        // Which genes should be mutated
+        int gene1 = new System.Random().Next(0, 8) * 3;
+        int gene2 = gene1;
+
+        // Avoid permutate the gene to it original position
+        while (gene1 == gene2)
+        {
+            gene2 = new System.Random().Next(0, 8) * 3;
+        } 
+        Debug.Log($"SINGLE MUT. SWAP ({gene1}) <-> ({gene2})");
+
+        // Swap the positions of the mutant  genes
+        string swappedGene = childGenes[gene1..(gene1 + 3)];
+        childGenes = childGenes[0..gene1] + childGenes[gene2..(gene2 + 3)] + childGenes[(gene1 + 3)..24];
+
+        childGenes = childGenes[0..gene2] + swappedGene + childGenes[(gene2 + 3)..24];
+
+        return childGenes;
+    }
 
     public static (BoardSetting parent1, BoardSetting parent2) ChooseParents(BoardSetting[] population)
     {
@@ -479,7 +514,7 @@ public static class GeneticManager
       originalGeneTxt += (i % 3 == 2) ? " | " : "";
     }
 
-    string mutantChild = MutateChild(genTape, 0.4f);
+    string mutantChild = MutateChildPerGene(genTape, 0.4f);
 
     string mutantGeneTxt = "| ";
     for (int i = 0; i < genTape.Length; i++)

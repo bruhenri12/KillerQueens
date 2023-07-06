@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
   [SerializeField] private int maxIterations = 10;
   [SerializeField] private int offspringSize = 2;
   [SerializeField] [Range(0,1)]  private float mutationProb = 0.4f;
+  [SerializeField] [Range(0, 1)] private float perGeneMutation = 0.05f;
   [SerializeField] [Range(0,1)]  private float crossoverProb = 0.9f;
   [SerializeField] int splitsNumber = 1; 
   [SerializeField] private int[] geneSlices = { 2, 4, 6 };
@@ -89,7 +90,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("p2: " + parents.parent2.ToString());
 
             var offspring = GeneticManager.GenerateOffspring(parents.parent1, parents.parent2, offspringSize,
-                                                              splitsNumber, geneSlices, mutationProb, crossoverProb);
+                                                              splitsNumber, geneSlices, mutationProb, crossoverProb, perGeneMutation);
 
             Debug.Log("Offspring: " + offspring[0] + " \n " + offspring[1]);
 
