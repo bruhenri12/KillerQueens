@@ -30,8 +30,13 @@ public class GameManager : MonoBehaviour
     private double[] avgFitness;
     private BoardSetting[] bestPop;
 
-  //Return the best setting among the various boardSettings
-  BoardSetting GetBestSetting(BoardSetting[] boardSettings)
+    //Per execution metrics
+    private double[,] avgFitnessIter;
+    private double[,] stdFitnessIter;
+    private BoardSetting[,] bestSettingIter;
+
+    //Return the best setting among the various boardSettings
+    BoardSetting GetBestSetting(BoardSetting[] boardSettings)
   {
     BoardSetting best = null;
 
@@ -62,6 +67,10 @@ public class GameManager : MonoBehaviour
     nConvergedPops = new int[executions];
     avgFitness = new double[executions];
     bestPop = new BoardSetting[executions];
+
+    avgFitnessIter = new double[executions, maxIterations];
+    stdFitnessIter = new double[executions, maxIterations];
+    bestSettingIter = new BoardSetting[executions, maxIterations];
 
     for (int i=0; i<executions; i++)
     {
@@ -105,6 +114,14 @@ public class GameManager : MonoBehaviour
             manipulator.OnUpdateQueens(bestSetting);
 
             PrintPopulationFitness();
+
+            //Update per iteration metrics
+            int[] fitnessArray = boardSettings.Select(board => board.Fitness).ToArray();
+            avgFitnessIter[epochNum, iter] = fitnessArray.Average();
+            stdFitnessIter[epochNum, iter] = Std(fitnessArray);
+            bestSettingIter[epochNum, iter] = bestSetting;
+
+            //Update iteration counter
             iter++;
         }
 
@@ -154,8 +171,8 @@ public class GameManager : MonoBehaviour
             $"Nº Iterations: avg={avgIterNum} | std={stdIterNum}\n" +
             $"Fitness: avg={avgFit} | std={stdFit}";
 
-        var metrics = new Metrics(nIterations,iterConverged,nConvergedPops,avgFitness, bestPop, convergencePerc, avgIterNum, stdIterNum, avgFit, stdFit);
-        var jsonString = JsonUtility.ToJson(metrics);
+        var metrics = new Metrics(nIterations,iterConverged,nConvergedPops,avgFitness, bestPop, convergencePerc, avgIterNum, stdIterNum, avgFit, stdFit,avgFitnessIter, stdFitnessIter, bestSettingIter);
+        var jsonString = JsonUtility.ToJson(metrics,true);
         var resultsPath = @$"Assets/Metrics/Metrics {DateTime.Now.ToString("M / d / yy h: m:s tt").Replace('/', '_').Replace(':','_').Replace(" ", "")}.json";
         File.WriteAllText(resultsPath, jsonString);    
 

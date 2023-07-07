@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [Serializable]
@@ -20,12 +21,30 @@ public class Metrics
         }
     }
 
+    [Serializable]
+    public class Execution
+    {
+        public int executionNum;
+        public double[] avgFitnessIter;
+        public double[] stdFitnessIter;
+        public int[] bestSettingFitnessIter;
+
+        public Execution(int executionNum, double[] avgFitnessIter, double[] stdFitnessIter, int[] bestSettingIter)
+        {
+            this.executionNum = executionNum;
+            this.avgFitnessIter = avgFitnessIter;
+            this.stdFitnessIter = stdFitnessIter;
+            this.bestSettingFitnessIter = bestSettingIter;
+        }
+    }
+
     public int[] nIterations;
     public bool[] iterConverged;
     public int[] nConvergedPops;
     public double[] avgFitness;
 
     public BoardSettingJson[] bestPops;
+    public Execution[] executions;
 
     public double convergencePerc;
     public double avgIterNum;
@@ -34,8 +53,9 @@ public class Metrics
     public double avgFit;
     public double stdFit;
 
-    public Metrics(int[] nIterations, bool[] iterConverged, int[] nConvergedPops, double[] avgFitness,
-            BoardSetting[] bestPop, double convergencePerc, double avgIterNum, double stdIterNum, double avgFit, double stdFit)
+    public Metrics(int[] nIterations, bool[] iterConverged, int[] nConvergedPops, double[] avgFitness, BoardSetting[] bestPop,
+        double convergencePerc, double avgIterNum, double stdIterNum, double avgFit, double stdFit,
+        double[,] avgFitnessIter, double[,] stdFitnessIter, BoardSetting[,] bestSettingIter)
     {
         BoardSettingJson[] bestPopJsonArray = new BoardSettingJson[bestPop.Length];
         for(int i=0; i<bestPop.Length; i++)
@@ -53,5 +73,31 @@ public class Metrics
         this.stdIterNum = stdIterNum;
         this.avgFit = avgFit;
         this.stdFit = stdFit;
+
+        // Store per iter metrics
+        executions = new Execution[bestSettingIter.GetLength(0)];
+        for (int i = 0; i < bestSettingIter.GetLength(0); i++)
+        {
+            BoardSettingJson[] bestSettingIterJson = new BoardSettingJson[bestSettingIter.GetLength(1)];
+            var avgFitnessLine = GetArrayLine(avgFitnessIter, i);
+            var stdFitnessLine = GetArrayLine(stdFitnessIter, i);
+            var bestSettingLine = GetArrayLine(bestSettingIter, i);
+            var bestFitnessLine = bestSettingLine.Select(board => board.Fitness).ToArray();
+
+            Execution currExec = new Execution(i, avgFitnessLine, stdFitnessLine, bestFitnessLine);
+            executions[i] = currExec;
+        }
+    }
+
+    public T[] GetArrayLine<T>(T[,] array, int i)
+    {
+        T[] line = new T[array.GetLength(1)];
+
+        for(int j=0; j< line.Length; j++)
+        {
+            line[j] = array[i,j];
+        }
+
+        return line;
     }
 }
