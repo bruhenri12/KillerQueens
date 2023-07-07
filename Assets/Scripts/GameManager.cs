@@ -26,6 +26,7 @@ public class GameManager : MonoBehaviour
     //Metrics
     private int[] nIterations;
     private bool[] iterConverged;
+    private int[] nIterAllPopConverge;
     private int[] nConvergedPops;
     private double[] avgFitness;
     private BoardSetting[] bestPop;
@@ -67,6 +68,7 @@ public class GameManager : MonoBehaviour
     nConvergedPops = new int[executions];
     avgFitness = new double[executions];
     bestPop = new BoardSetting[executions];
+    nIterAllPopConverge = new int[executions];
 
     avgFitnessIter = new double[executions, maxIterations];
     stdFitnessIter = new double[executions, maxIterations];
@@ -85,6 +87,7 @@ public class GameManager : MonoBehaviour
         int iter = 0;
         bestSetting = null;
         int bestFitness = int.MaxValue;
+        double iterAvgFitness = double.MaxValue;
         boardSettings = new BoardSetting[sizeOfPopulation];
 
         //Initialize the population with random individuals
@@ -93,7 +96,7 @@ public class GameManager : MonoBehaviour
             boardSettings[i] = new BoardSetting();
         }
 
-        while (bestFitness != 0 && iter < maxIterations)
+        while (iterAvgFitness == 0 || iter < maxIterations)
         {
             var parents = GeneticManager.ChooseParents(boardSettings);
             Debug.Log("p1: " + parents.parent1.ToString());
@@ -117,24 +120,32 @@ public class GameManager : MonoBehaviour
 
             //Update per iteration metrics
             int[] fitnessArray = boardSettings.Select(board => board.Fitness).ToArray();
-            avgFitnessIter[epochNum, iter] = fitnessArray.Average();
+            iterAvgFitness = fitnessArray.Average();
+            avgFitnessIter[epochNum, iter] = iterAvgFitness;
             stdFitnessIter[epochNum, iter] = Std(fitnessArray);
             bestSettingIter[epochNum, iter] = bestSetting;
+
+            // Check convergence
+            if(bestFitness == 0)
+            {
+                Debug.Log("Acabou o loop!" + "\nCollisions: " + bestSetting.Fitness.ToString());
+                Debug.Log("(" + iter + ") best: " + bestSetting.Fitness);
+                Debug.Log("Iterations: " + iter.ToString());
+
+                //Setting metric fields
+                nIterations[epochNum] = iter;
+                iterConverged[epochNum] = boardSettings.Any(board => board.Fitness == 0);
+                nConvergedPops[epochNum] = boardSettings.Count(board => board.Fitness == 0);
+                avgFitness[epochNum] = boardSettings.Average(board => board.Fitness);
+                bestPop[epochNum] = bestSetting;
+            }
 
             //Update iteration counter
             iter++;
         }
 
-        Debug.Log("Acabou o loop!" + "\nCollisions: " + bestSetting.Fitness.ToString());
-        Debug.Log("(" + iter + ") best: " + bestSetting.Fitness);
-        Debug.Log("Iterations: " + iter.ToString());
-
-        //Setting metric fields
-        nIterations[epochNum] = iter;
-        iterConverged[epochNum] = boardSettings.Any(board => board.Fitness == 0);
-        nConvergedPops[epochNum] = boardSettings.Count(board => board.Fitness == 0);
-        avgFitness[epochNum] = boardSettings.Average(board => board.Fitness);
-        bestPop[epochNum] = bestSetting;
+        nIterAllPopConverge[epochNum] = iter;
+        Debug.Log($"All Pop Converged in {iter}th iter. Avg Fit: {iterAvgFitness}");
     }
 
   void PrintPopulationFitness(){
@@ -167,11 +178,16 @@ public class GameManager : MonoBehaviour
         double avgFit = avgFitness.Average();
         double stdFit = Std(avgFitness);
 
+        double avgIterAllPopConverged = nIterAllPopConverge.Average();
+        double stdIterAllPopConverged = Std(nIterAllPopConverge);
+
         string printTxt = $"Convergence Rate: {convergencePerc}\n" +
             $"Nº Iterations: avg={avgIterNum} | std={stdIterNum}\n" +
-            $"Fitness: avg={avgFit} | std={stdFit}";
+            $"Fitness: avg={avgFit} | std={stdFit}\n" +
+            $"Iter. Total Convergence: avg={avgIterAllPopConverged} | std: {stdIterAllPopConverged}";
 
-        var metrics = new Metrics(nIterations,iterConverged,nConvergedPops,avgFitness, bestPop, convergencePerc, avgIterNum, stdIterNum, avgFit, stdFit,avgFitnessIter, stdFitnessIter, bestSettingIter);
+        var metrics = new Metrics(nIterations,iterConverged,nConvergedPops,avgFitness, bestPop, convergencePerc, avgIterNum, stdIterNum,
+                            avgFit, stdFit,avgFitnessIter, stdFitnessIter, bestSettingIter, avgIterAllPopConverged, stdIterAllPopConverged);
         var jsonString = JsonUtility.ToJson(metrics,true);
         var resultsPath = @$"Assets/Metrics/Metrics {DateTime.Now.ToString("M / d / yy h: m:s tt").Replace('/', '_').Replace(':','_').Replace(" ", "")}.json";
         File.WriteAllText(resultsPath, jsonString);    

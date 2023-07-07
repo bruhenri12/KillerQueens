@@ -15,9 +15,12 @@ public class Metrics
 
         public BoardSettingJson(BoardSetting boardSetting)
         {
-            this.binaryGenTape = boardSetting.GetGeneticBinaryTape();
-            this.intGenTape = boardSetting.GetGeneticIntTape();
-            this.fitness = boardSetting.Fitness;
+            if (boardSetting != null) 
+            {
+                this.binaryGenTape = boardSetting.GetGeneticBinaryTape();
+                this.intGenTape = boardSetting.GetGeneticIntTape();
+                this.fitness = boardSetting.Fitness;
+            }
         }
     }
 
@@ -50,12 +53,16 @@ public class Metrics
     public double avgIterNum;
     public double stdIterNum;
 
+    public double avgIterAllPopConverged;
+    public double stdIterAllPopConverged;
+
     public double avgFit;
     public double stdFit;
 
-    public Metrics(int[] nIterations, bool[] iterConverged, int[] nConvergedPops, double[] avgFitness, BoardSetting[] bestPop,
+    public Metrics(int[] nIterations, bool[] iterConverged,int[] nConvergedPops, double[] avgFitness, BoardSetting[] bestPop,
         double convergencePerc, double avgIterNum, double stdIterNum, double avgFit, double stdFit,
-        double[,] avgFitnessIter, double[,] stdFitnessIter, BoardSetting[,] bestSettingIter)
+        double[,] avgFitnessIter, double[,] stdFitnessIter, BoardSetting[,] bestSettingIter,
+        double avgIterAllPopConverged, double stdIterAllPopConverged)
     {
         BoardSettingJson[] bestPopJsonArray = new BoardSettingJson[bestPop.Length];
         for(int i=0; i<bestPop.Length; i++)
@@ -73,6 +80,8 @@ public class Metrics
         this.stdIterNum = stdIterNum;
         this.avgFit = avgFit;
         this.stdFit = stdFit;
+        this.avgIterAllPopConverged = avgIterAllPopConverged;
+        this.stdIterAllPopConverged = stdIterAllPopConverged;
 
         // Store per iter metrics
         executions = new Execution[bestSettingIter.GetLength(0)];
