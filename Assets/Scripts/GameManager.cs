@@ -89,6 +89,7 @@ public class GameManager : MonoBehaviour
         int bestFitness = int.MaxValue;
         double iterAvgFitness = double.MaxValue;
         boardSettings = new BoardSetting[sizeOfPopulation];
+        bool converged = false;
 
         //Initialize the population with random individuals
         for (int i = 0; i < sizeOfPopulation; i++)
@@ -126,7 +127,7 @@ public class GameManager : MonoBehaviour
             bestSettingIter[epochNum, iter] = bestSetting;
 
             // Check convergence
-            if(bestFitness == 0)
+            if(bestFitness == 0 && !converged)
             {
                 Debug.Log("Acabou o loop!" + "\nCollisions: " + bestSetting.Fitness.ToString());
                 Debug.Log("(" + iter + ") best: " + bestSetting.Fitness);
@@ -138,6 +139,9 @@ public class GameManager : MonoBehaviour
                 nConvergedPops[epochNum] = boardSettings.Count(board => board.Fitness == 0);
                 avgFitness[epochNum] = boardSettings.Average(board => board.Fitness);
                 bestPop[epochNum] = bestSetting;
+
+                // Disallow the above metrics be updated after the first pop converge
+                converged = true;
             }
 
             //Update iteration counter
