@@ -6051,14 +6051,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   manipulator: {fileID: 1629897303}
   sizeOfPopulation: 100
-  maxIterations: 10
+  maxIterations: 10000
   offspringSize: 2
   mutationProb: 0.4
-  perGeneMutation: 0.05
+  perGeneMutation: 0
   crossoverProb: 0.9
   splitsNumber: 1
-  geneSlices: 020000000400000006000000
-  executions: 4
+  geneSlices: 02000000
+  executions: 30
 --- !u!1 &1638868228
 GameObject:
   m_ObjectHideFlags: 0

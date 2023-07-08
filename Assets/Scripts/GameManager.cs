@@ -32,9 +32,9 @@ public class GameManager : MonoBehaviour
     private BoardSetting[] bestPop;
 
     //Per execution metrics
-    private double[,] avgFitnessIter;
-    private double[,] stdFitnessIter;
-    private BoardSetting[,] bestSettingIter;
+    private List<double>[] avgFitnessIter;
+    private List<double>[] stdFitnessIter;
+    private List<BoardSetting>[] bestSettingIter;
 
     //Return the best setting among the various boardSettings
     BoardSetting GetBestSetting(BoardSetting[] boardSettings)
@@ -62,17 +62,8 @@ public class GameManager : MonoBehaviour
 
   public void OnRun()
   {
-    //Reset Metrics
-    nIterations = new int[executions];
-    iterConverged = new bool[executions];
-    nConvergedPops = new int[executions];
-    avgFitness = new double[executions];
-    bestPop = new BoardSetting[executions];
-    nIterAllPopConverge = new int[executions];
 
-    avgFitnessIter = new double[executions, maxIterations];
-    stdFitnessIter = new double[executions, maxIterations];
-    bestSettingIter = new BoardSetting[executions, maxIterations];
+    ResetMetrics();
 
     for (int i=0; i<executions; i++)
     {
@@ -80,6 +71,8 @@ public class GameManager : MonoBehaviour
     }
 
      SaveAndPrintMetrics();
+
+        Debug.Log("Finished algorithm execution!");
   }
 
     private void Epoch(int epochNum)
@@ -97,16 +90,11 @@ public class GameManager : MonoBehaviour
             boardSettings[i] = new BoardSetting();
         }
 
-        while (iterAvgFitness == 0 || iter < maxIterations)
+        while (!converged)
         {
             var parents = GeneticManager.ChooseParents(boardSettings);
-            Debug.Log("p1: " + parents.parent1.ToString());
-            Debug.Log("p2: " + parents.parent2.ToString());
-
             var offspring = GeneticManager.GenerateOffspring(parents.parent1, parents.parent2, offspringSize,
                                                               splitsNumber, geneSlices, mutationProb, crossoverProb, perGeneMutation);
-
-            Debug.Log("Offspring: " + offspring[0] + " \n " + offspring[1]);
 
             boardSettings = GeneticManager.SurvivorSelection(boardSettings, offspring);
 
@@ -114,25 +102,16 @@ public class GameManager : MonoBehaviour
             bestSetting = GetBestSetting(boardSettings);
             bestFitness = bestSetting.Fitness;
 
-            //Update board renderer
-            manipulator.OnUpdateQueens(bestSetting);
-
-            PrintPopulationFitness();
-
             //Update per iteration metrics
             int[] fitnessArray = boardSettings.Select(board => board.Fitness).ToArray();
             iterAvgFitness = fitnessArray.Average();
-            avgFitnessIter[epochNum, iter] = iterAvgFitness;
-            stdFitnessIter[epochNum, iter] = Std(fitnessArray);
-            bestSettingIter[epochNum, iter] = bestSetting;
+            avgFitnessIter[epochNum].Add(iterAvgFitness);
+            stdFitnessIter[epochNum].Add(Std(fitnessArray));
+            bestSettingIter[epochNum].Add(bestSetting);
 
             // Check convergence
             if(bestFitness == 0 && !converged)
             {
-                Debug.Log("Acabou o loop!" + "\nCollisions: " + bestSetting.Fitness.ToString());
-                Debug.Log("(" + iter + ") best: " + bestSetting.Fitness);
-                Debug.Log("Iterations: " + iter.ToString());
-
                 //Setting metric fields
                 nIterations[epochNum] = iter;
                 iterConverged[epochNum] = boardSettings.Any(board => board.Fitness == 0);
@@ -149,10 +128,46 @@ public class GameManager : MonoBehaviour
         }
 
         nIterAllPopConverge[epochNum] = iter;
-        Debug.Log($"All Pop Converged in {iter}th iter. Avg Fit: {iterAvgFitness}");
+
+        if (iterAvgFitness == 0)
+        {
+            Debug.Log($"All Pop Converged in {iter}th iter. Avg Fit: {iterAvgFitness}");
+        }
+
+        //Update board renderer
+        manipulator.OnUpdateQueens(bestSetting);
     }
 
-  void PrintPopulationFitness(){
+    private void ResetMetrics()
+    {
+        nIterations = new int[executions];
+        iterConverged = new bool[executions];
+        nConvergedPops = new int[executions];
+        avgFitness = new double[executions];
+        bestPop = new BoardSetting[executions];
+        nIterAllPopConverge = new int[executions];
+
+        avgFitnessIter = new List<double>[executions];
+        stdFitnessIter = new List<double>[executions];
+        bestSettingIter = new List<BoardSetting>[executions];
+
+        for (int i = 0; i < executions; i++)
+        {
+            avgFitnessIter[i] = new List<double>();
+        }
+
+        for (int i = 0; i < executions; i++)
+        {
+            stdFitnessIter[i] = new List<double>();
+        }
+
+        for (int i = 0; i < executions; i++)
+        {
+            bestSettingIter[i] = new List<BoardSetting>();
+        }
+    }
+
+    void PrintPopulationFitness(){
       //Debug method used to print the fitness of each individual from the population 
       string tmpTxt = "Fitness: ";
       for (int i = 0; i < sizeOfPopulation; i++)
@@ -167,8 +182,6 @@ public class GameManager : MonoBehaviour
         tmpTxt += gene + ",";
       }
       tmpTxt += "]";
-
-      Debug.Log(tmpTxt);
   }
 
   void SaveAndPrintMetrics()
@@ -195,8 +208,6 @@ public class GameManager : MonoBehaviour
         var jsonString = JsonUtility.ToJson(metrics);
         var resultsPath = @$"Assets/Metrics/Metrics {DateTime.Now.ToString("M / d / yy h: m:s tt").Replace('/', '_').Replace(':','_').Replace(" ", "")}.json";
         File.WriteAllText(resultsPath, jsonString);    
-
-        Debug.Log(printTxt);
     }
 
     double Std(double[] array)

@@ -64,7 +64,7 @@ public class Metrics
 
     public Metrics(int maxIteration, int populationSize, int[] nIterations, bool[] iterConverged,int[] nConvergedPops, double[] avgFitness, BoardSetting[] bestPop,
         double convergencePerc, double avgIterNum, double stdIterNum, double avgFit, double stdFit,
-        double[,] avgFitnessIter, double[,] stdFitnessIter, BoardSetting[,] bestSettingIter,
+        List<double>[] avgFitnessIter, List<double>[] stdFitnessIter, List<BoardSetting>[] bestSettingIter,
         double avgIterAllPopConverged, double stdIterAllPopConverged)
     {
         BoardSettingJson[] bestPopJsonArray = new BoardSettingJson[bestPop.Length];
@@ -93,13 +93,22 @@ public class Metrics
         executions = new Execution[bestSettingIter.GetLength(0)];
         for (int i = 0; i < bestSettingIter.GetLength(0); i++)
         {
-            BoardSettingJson[] bestSettingIterJson = new BoardSettingJson[bestSettingIter.GetLength(1)];
-            var avgFitnessLine = GetArrayLine(avgFitnessIter, i);
-            var stdFitnessLine = GetArrayLine(stdFitnessIter, i);
-            var bestSettingLine = GetArrayLine(bestSettingIter, i);
-            var bestFitnessLine = bestSettingLine.Select(board => board.Fitness).ToArray();
+            BoardSettingJson[] bestSettingIterJson = new BoardSettingJson[bestSettingIter.Count()];
+            var avgFitnessLine = avgFitnessIter[i];
+            var stdFitnessLine = stdFitnessIter[i];
+            var bestSettingLine = bestSettingIter[i];
 
-            Execution currExec = new Execution(i, avgFitnessLine, stdFitnessLine, bestFitnessLine);
+            int[] bestFitnessLine = null;
+            try
+            {
+                bestFitnessLine = bestSettingLine.Select(board => board.Fitness).ToArray();
+            }
+            catch
+            {
+                Debug.Log("rodu");
+            }
+
+            Execution currExec = new Execution(i, avgFitnessLine.ToArray(), stdFitnessLine.ToArray(), bestFitnessLine.ToArray());
             executions[i] = currExec;
         }
     }

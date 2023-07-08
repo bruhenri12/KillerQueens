@@ -67,7 +67,6 @@ public static class GeneticManager
 
     public static string ConvertToStringBinaryTape(int[] tape)
     {
-        Debug.Log("Converting: " + TapeString(tape));
         string genTape = "";
 
         for (int i = 0; i < 8; i++)
@@ -124,7 +123,6 @@ public static class GeneticManager
     {
       for (int i = 0; i < offspringSize; i++)
       {
-        Debug.Log("copied parent");
         if (i % 2 == 0) { offspring[i] = parent1; }
         else { offspring[i] = parent2; }
       }
@@ -180,7 +178,6 @@ public static class GeneticManager
             }
 
             Array.Sort(splitsIndexes);
-            Debug.Log(PrintArray(splitsIndexes,"Split Indexes: "));
         }
 
         int currentSplitIndex = 0;
@@ -333,9 +330,6 @@ public static class GeneticManager
             }
         }
 
-        Debug.Log("Child 1: " + TapeString(ConvertToIntTape(fstChildGene)));
-        Debug.Log("Child 2: " + TapeString(ConvertToIntTape(sndChildGene)));
-
         return (firstChild: fstChildGene, secondChild: sndChildGene);
     }
 
@@ -387,7 +381,6 @@ public static class GeneticManager
         int[] validPositions = Enumerable.Range(0, 8).Where(pos => pos != i).ToArray();
         int swapRandomNumber = new System.Random().Next(0, 7);
         int swapPos = validPositions[swapRandomNumber] * 3;
-        Debug.Log($"MULTIPLE MUT. SWAP ({mutationRandomNumber}) {i}({genePos}) <-> {swapPos / 3}({swapPos})");
 
         // Swap the positions of the mutant  genes
         string swappedGene = childGenes[genePos..(genePos+3)];
@@ -418,7 +411,6 @@ public static class GeneticManager
         {
             gene2 = new System.Random().Next(0, 8) * 3;
         } 
-        Debug.Log($"SINGLE MUT. SWAP ({gene1}) <-> ({gene2})");
 
         // Swap the positions of the mutant  genes
         string swappedGene = childGenes[gene1..(gene1 + 3)];
@@ -463,7 +455,6 @@ public static class GeneticManager
             }
         }
 
-        Debug.Log(tmp);
         return (parent1: bestPop1, parent2: bestPop2);
     }
 
@@ -494,7 +485,6 @@ public static class GeneticManager
         for (int i=0; i < offspring.Length; i++)
         {
             int worstFitIndex = worstFitIndexes[i];
-            Debug.Log($"({i}) {population[worstFitIndex]} <- {offspring[i]}");
             population[worstFitIndex] = offspring[i];
         }
 
