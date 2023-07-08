@@ -186,9 +186,9 @@ public class GameManager : MonoBehaviour
             $"Fitness: avg={avgFit} | std={stdFit}\n" +
             $"Iter. Total Convergence: avg={avgIterAllPopConverged} | std: {stdIterAllPopConverged}";
 
-        var metrics = new Metrics(nIterations,iterConverged,nConvergedPops,avgFitness, bestPop, convergencePerc, avgIterNum, stdIterNum,
+        var metrics = new Metrics(maxIterations, sizeOfPopulation ,nIterations,iterConverged,nConvergedPops,avgFitness, bestPop, convergencePerc, avgIterNum, stdIterNum,
                             avgFit, stdFit,avgFitnessIter, stdFitnessIter, bestSettingIter, avgIterAllPopConverged, stdIterAllPopConverged);
-        var jsonString = JsonUtility.ToJson(metrics,true);
+        var jsonString = JsonUtility.ToJson(metrics);
         var resultsPath = @$"Assets/Metrics/Metrics {DateTime.Now.ToString("M / d / yy h: m:s tt").Replace('/', '_').Replace(':','_').Replace(" ", "")}.json";
         File.WriteAllText(resultsPath, jsonString);    
 

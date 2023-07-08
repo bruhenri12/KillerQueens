@@ -9,16 +9,16 @@ public class Metrics
 {
     [Serializable]
     public class BoardSettingJson{
-        public int[] binaryGenTape = new int[24];
-        public int[] intGenTape = new int[8];
-        public int fitness;
+        public string binaryGenTape;
+        public string intGenTape;
+        public int fitness = int.MaxValue;
 
         public BoardSettingJson(BoardSetting boardSetting)
         {
             if (boardSetting != null) 
             {
-                this.binaryGenTape = boardSetting.GetGeneticBinaryTape();
-                this.intGenTape = boardSetting.GetGeneticIntTape();
+                this.binaryGenTape = string.Join("",boardSetting.GetGeneticBinaryTape());
+                this.intGenTape = string.Join("", boardSetting.GetGeneticIntTape());
                 this.fitness = boardSetting.Fitness;
             }
         }
@@ -41,6 +41,9 @@ public class Metrics
         }
     }
 
+    public int maxIteration;
+    public int populationSize;
+
     public int[] nIterations;
     public bool[] iterConverged;
     public int[] nConvergedPops;
@@ -59,7 +62,7 @@ public class Metrics
     public double avgFit;
     public double stdFit;
 
-    public Metrics(int[] nIterations, bool[] iterConverged,int[] nConvergedPops, double[] avgFitness, BoardSetting[] bestPop,
+    public Metrics(int maxIteration, int populationSize, int[] nIterations, bool[] iterConverged,int[] nConvergedPops, double[] avgFitness, BoardSetting[] bestPop,
         double convergencePerc, double avgIterNum, double stdIterNum, double avgFit, double stdFit,
         double[,] avgFitnessIter, double[,] stdFitnessIter, BoardSetting[,] bestSettingIter,
         double avgIterAllPopConverged, double stdIterAllPopConverged)
@@ -69,6 +72,9 @@ public class Metrics
         {
             bestPopJsonArray[i] = new BoardSettingJson(bestPop[i]);
         }
+
+        this.maxIteration = maxIteration;
+        this.populationSize = populationSize;
 
         this.nIterations = nIterations;
         this.iterConverged = iterConverged;
