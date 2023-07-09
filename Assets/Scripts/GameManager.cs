@@ -18,8 +18,10 @@ public class GameManager : MonoBehaviour
   [SerializeField] private int sizeOfPopulation = 100;
   [SerializeField] private int maxIterations = 10;
   [SerializeField] private int offspringSize = 2;
+  [SerializeField] private bool perGeneMutation;
+  [SerializeField] private bool fixedSliceIndexes;
   [SerializeField] [Range(0,1)]  private float mutationProb = 0.4f;
-  [SerializeField] [Range(0, 1)] private float perGeneMutation = 0.05f;
+  [SerializeField] [Range(0, 1)] private float perGeneMutationProb = 0.05f;
   [SerializeField] [Range(0,1)]  private float crossoverProb = 0.9f;
   [SerializeField] private ParentSelectionMode parentSelectionMode;
   [SerializeField] int splitsNumber = 1; 
@@ -68,6 +70,9 @@ public class GameManager : MonoBehaviour
 
   public void OnRun()
   {
+    geneSlices = fixedSliceIndexes ? geneSlices : null;
+    mutationProb = perGeneMutation ? 0 : mutationProb;
+    perGeneMutationProb = perGeneMutation ? perGeneMutationProb : 0;
 
     ResetMetrics();
 
@@ -96,11 +101,11 @@ public class GameManager : MonoBehaviour
             boardSettings[i] = new BoardSetting();
         }
 
-        while (!converged)
+        while (!converged && iter <= maxIterations)
         {
             var parents = GeneticManager.ChooseParents(boardSettings, parentSelectionMode);
             var offspring = GeneticManager.GenerateOffspring(parents.parent1, parents.parent2, offspringSize,
-                                                              splitsNumber, geneSlices, mutationProb, crossoverProb, perGeneMutation);
+                                                              splitsNumber, geneSlices, mutationProb, crossoverProb, perGeneMutationProb);
 
             boardSettings = GeneticManager.SurvivorSelection(boardSettings, offspring);
 

@@ -6054,12 +6054,12 @@ MonoBehaviour:
   maxIterations: 10000
   offspringSize: 2
   mutationProb: 0.4
-  perGeneMutation: 0.05
+  perGeneMutation: 0
   crossoverProb: 0.9
+  parentSelectionMode: 0
   splitsNumber: 3
   geneSlices: 000000000000000000000000
   executions: 30
-  roulleteParentSelection: 1
 --- !u!1 &1638868228
 GameObject:
   m_ObjectHideFlags: 0
