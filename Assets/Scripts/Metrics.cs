@@ -98,15 +98,7 @@ public class Metrics
             var stdFitnessLine = stdFitnessIter[i];
             var bestSettingLine = bestSettingIter[i];
 
-            int[] bestFitnessLine = null;
-            try
-            {
-                bestFitnessLine = bestSettingLine.Select(board => board.Fitness).ToArray();
-            }
-            catch
-            {
-                Debug.Log("rodu");
-            }
+            int[] bestFitnessLine = bestSettingLine.Select(board => board.Fitness).ToArray();
 
             Execution currExec = new Execution(i, avgFitnessLine.ToArray(), stdFitnessLine.ToArray(), bestFitnessLine.ToArray());
             executions[i] = currExec;

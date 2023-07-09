@@ -5,6 +5,11 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
+public enum ParentSelectionMode
+{
+    tournament, roulette
+}
+
 public class GameManager : MonoBehaviour
 {
   [SerializeField] QueensManipulator manipulator;
@@ -16,11 +21,12 @@ public class GameManager : MonoBehaviour
   [SerializeField] [Range(0,1)]  private float mutationProb = 0.4f;
   [SerializeField] [Range(0, 1)] private float perGeneMutation = 0.05f;
   [SerializeField] [Range(0,1)]  private float crossoverProb = 0.9f;
+  [SerializeField] private ParentSelectionMode parentSelectionMode;
   [SerializeField] int splitsNumber = 1; 
   [SerializeField] private int[] geneSlices = { 2, 4, 6 };
   [SerializeField] private int executions = 4;
 
-  public BoardSetting[] boardSettings;
+    public BoardSetting[] boardSettings;
   private BoardSetting bestSetting;
 
     //Metrics
@@ -92,7 +98,7 @@ public class GameManager : MonoBehaviour
 
         while (!converged)
         {
-            var parents = GeneticManager.ChooseParents(boardSettings);
+            var parents = GeneticManager.ChooseParents(boardSettings, parentSelectionMode);
             var offspring = GeneticManager.GenerateOffspring(parents.parent1, parents.parent2, offspringSize,
                                                               splitsNumber, geneSlices, mutationProb, crossoverProb, perGeneMutation);
 

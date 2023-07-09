@@ -421,7 +421,23 @@ public static class GeneticManager
         return childGenes;
     }
 
-    public static (BoardSetting parent1, BoardSetting parent2) ChooseParents(BoardSetting[] population)
+    public static (BoardSetting parent1, BoardSetting parent2) ChooseParents(BoardSetting[] population, ParentSelectionMode selectionMode)
+    {
+        if (selectionMode == ParentSelectionMode.tournament)
+        {
+            return TournamentSelection(population);
+        }
+        else if (selectionMode == ParentSelectionMode.roulette)
+        {
+            return RouletteSelection(population);
+        }
+        else
+        {
+            return (parent1: null, parent2: null);
+        }
+    }
+
+    public static (BoardSetting parent1, BoardSetting parent2) TournamentSelection(BoardSetting[] population)
     {
         var chooser = new System.Random();
 
@@ -430,12 +446,10 @@ public static class GeneticManager
         BoardSetting bestPop1 = null;
         BoardSetting bestPop2 = null;
 
-        var tmp = "candidates: ";
 
         for(int i=0; i < 5; i++)
         {
             BoardSetting choosen = population[chooser.Next(population.Length)];
-            tmp += choosen.Fitness + " | ";
 
             if(choosen.Fitness < bestFit1)
             {
@@ -456,6 +470,53 @@ public static class GeneticManager
         }
 
         return (parent1: bestPop1, parent2: bestPop2);
+    }
+
+    public static (BoardSetting parent1, BoardSetting parent2) RouletteSelection(BoardSetting[] population)
+    {
+        float[] rouletteSlices = new float[population.Length + 2];
+        int[] popFitness = population.Select(pop => pop.Fitness).ToArray();
+        int totalFitness = popFitness.Sum();
+        float currProb = 0;
+
+        //Calculate roullete slices
+        for (int i = 1; i < population.Length+1; i++)
+        {
+            currProb = (float) popFitness[i-1] / totalFitness;
+            rouletteSlices[i] = rouletteSlices[i - 1] + currProb;
+        }
+        rouletteSlices[population.Length + 1] = 1;
+
+        //Get parents
+        BoardSetting[] parents = new BoardSetting[2];
+        BoardSetting choosenParent = null;
+
+        while (parents[0] == null || parents[1]==null)
+        {
+            float roulletResult = new System.Random().Next(0,10000)/10000f;
+
+            for(int i=1; i < rouletteSlices.Length; i++)
+            {
+                if (rouletteSlices[i-1] < roulletResult && roulletResult <= rouletteSlices[i])
+                {
+                    choosenParent = population[i - 1];
+                    if (!parents.Contains(choosenParent))
+                    {
+                        if (parents[0] == null)
+                        {
+                            parents[0] = choosenParent;
+                        }
+                        else if (parents[1] == null)
+                        {
+                            parents[1] = choosenParent;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        return (parent1: parents[0], parent2: parents[1]);
     }
 
     public static BoardSetting[] SurvivorSelection(BoardSetting[] population, BoardSetting[] offspring)
