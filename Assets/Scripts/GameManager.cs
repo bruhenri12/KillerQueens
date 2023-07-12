@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 public enum ParentSelectionMode
 {
@@ -27,6 +29,7 @@ public class GameManager : MonoBehaviour
   [SerializeField] int splitsNumber = 1; 
   [SerializeField] private int[] geneSlices = { 2, 4, 6 };
   [SerializeField] private int executions = 4;
+  [SerializeField] private bool waitFullConvergence;
 
     public BoardSetting[] boardSettings;
   private BoardSetting bestSetting;
@@ -101,7 +104,7 @@ public class GameManager : MonoBehaviour
             boardSettings[i] = new BoardSetting();
         }
 
-        while (!converged && iter <= maxIterations)
+        while (!stopCondition(iter, converged, iterAvgFitness))
         {
             var parents = GeneticManager.ChooseParents(boardSettings, parentSelectionMode);
             var offspring = GeneticManager.GenerateOffspring(parents.parent1, parents.parent2, offspringSize,
@@ -194,6 +197,18 @@ public class GameManager : MonoBehaviour
       }
       tmpTxt += "]";
   }
+
+    bool stopCondition(int iterNum, bool converged, double avgFitIter)
+    {
+        if (!waitFullConvergence)
+        {
+            return iterNum > maxIterations || converged;
+        }
+        else
+        {
+            return iterNum > maxIterations || avgFitIter == 0;
+        }
+    }
 
   void SaveAndPrintMetrics()
     {
